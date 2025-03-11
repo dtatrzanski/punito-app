@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "punito"
+version = "0.1.0"
+description = "An automated  genAI solution leveraging Llama-3.3 to incrementally generate comprehensive JUnit Mockito tests for a selected Java class"
+authors = ["Dominik Tatrzanski <dominik.tatrzanski@capgemini.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+dynaconf = "^3.2.10"
+loguru ="^0.7.0"
+httpx = "^0.28.1"
