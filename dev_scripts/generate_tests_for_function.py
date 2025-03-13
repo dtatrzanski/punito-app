@@ -1,5 +1,5 @@
 from punito import generate_tests_for_function
-from punito import read_class_file
+from punito import read_file
 
 
 def main():
@@ -26,10 +26,14 @@ def main():
        ```
        """
 
-    class_path = r"C:\moeve_IDE\moeve-ide\workspaces\main\moeve-vvst\moeve-enst-dlg\src\main\java\de\itzbund\moeve\enst\taxation\taxation\dlg\af200\controller\Af200EnergyBasicdataGeneralPanelControllerBean.java"
+    class_path = (
+        r"C:\moeve_IDE\moeve-ide\workspaces\main\moeve-vvst\moeve-enst-dlg\src\main"
+        r"\java\de\itzbund\moeve\enst\taxation\taxation\dlg\af200\controller"
+        r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
+    )
     function_name = "onChangeMonthPeriod"
 
-    class_code = read_class_file(class_path)
+    class_code = read_file(class_path)
     generate_tests_for_function(class_code, function_name)
 
 

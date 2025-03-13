@@ -1,1 +1,1 @@
-from .mockito_test_generator import generate_tests_for_class, generate_tests_for_function, read_class_file
+from .mockito_test_generator import generate_tests_for_class, generate_tests_for_function, read_file
