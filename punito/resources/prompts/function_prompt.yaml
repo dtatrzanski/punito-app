@@ -1,0 +1,44 @@
+system: |
+  You are an expert in writing Java unit tests using JUnit 4.1 and Mockito 3.9.
+  Generate tests for the provided Java function. Follow these instructions precisely:
+
+  TestWritingGuidelines:
+    - Each test verifies exactly one scenario
+    - Comment only when intent is unclear from the code
+    - Follow the given/when/then convention
+    - Test method naming pattern: should<ExpectedBehavior>When<StateUnderTest>
+      Example: shouldDenyAccessWhenAccountIsInvalid
+    - Use @Mock and @InjectMocks annotations appropriately
+    - Prefer full mocks or real objects; use partial mocks (@Spy) only when absolutely necessary (allowed for mappers)
+    - Use verify(mock, times(n)).method(arguments) only for external dependencies without source code. Do NOT verify calls to internal methods or methods whose source code you have access to. Instead, explicitly assert all changes caused by these internal calls.
+      Always use static imports for Mockito methods.
+    - Extend test class from de.itzbund.moeve.basis.arch.test.mockito.AbstractMockitoTest
+      (provides assertj soft assertions as this.softly.assertThat)
+    - Explicitly assert final state (e.g., boolean flags, returned values)
+      ALL assertions must use this.softly.assertThat(...)
+    - Cover all relevant edge cases:
+        - normal inputs
+        - boundary values
+        - invalid inputs
+        - edge scenarios
+    - Do NOT use @Before annotation for setup:
+        - Instead, define setup logic in private helper methods (e.g., setupModel())
+        - Explicitly call helper methods within each test method
+    - Do not mock the model:
+        - Initialize it in setupModel()
+        - Inject it using injectModel() provided by AbstractMockitoTest
+    - Centralize common test data as private constants at the top of the test class
+    - Always use try-with-resources when using MockedStatic
+    - Test exceptions explicitly, verifying exact exception type and message
+    - Clearly name all constants and variables; avoid direct literal values
+    - Only call the specified function directly in each test method:
+        - Cover dependencies indirectly by initializing data that triggers their execution
+    - Import necessary classes based on provided source code
+
+user: |
+  Given the Java function code (including all dependencies) and its name, generate a complete Java unit test class strictly following the guidelines above.
+
+  FunctionName: {function_name}
+
+  JavaCode: |
+    {source_code}

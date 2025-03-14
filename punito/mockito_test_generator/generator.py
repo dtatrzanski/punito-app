@@ -1,6 +1,6 @@
 from loguru import logger
 from datetime import datetime
-from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_json
+from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml
 from ..llm_client.streaming_client import stream_chat_completion
 
 
@@ -29,14 +29,14 @@ def generate_tests_for_function(class_code: str, class_name: str, function_name:
 
     target_path = (find_project_root() / 'generated_tests' / get_package_version()
                    / datetime.now().isoformat().replace(":", "-")
-                   / "Af200EnergyBasicdataGeneralPanelControllerBean" / 'tests_per_function'
+                   / class_name / 'tests_per_function'
                    / (function_name + ".java"))
     placeholders = {
         "function_name": function_name,
         "source_code": class_code
     }
 
-    prompt = create_prompt_from_json('function_prompt', placeholders)
+    prompt = create_prompt_from_yaml('function_prompt', placeholders)
     write_to_file(stream_chat_completion(prompt), target_path)
 
 

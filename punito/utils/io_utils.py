@@ -1,6 +1,6 @@
 from loguru import logger
 from pathlib import Path
-import json
+import yaml
 
 def read_file(path: str) -> str:
     """
@@ -25,26 +25,26 @@ def read_file(path: str) -> str:
         logger.error(f"Error reading file: {e}")
         return ""
 
-def read_json(path: Path) -> dict:
+def read_yaml(path: Path) -> dict:
     """
-    Reads a JSON file from the given path and returns its content as a dictionary.
+    Reads a YAML file from the given path and returns its content as a dictionary.
 
     Parameters
     ----------
     path : str
-        Absolute path to the JSON file.
+        Absolute path to the YAML file.
 
     Returns
     -------
     dict
-        The parsed JSON content, or an empty dictionary in case of an error.
+        The parsed YAML content, or an empty dictionary in case of an error.
     """
     try:
-        logger.info(f"Reading JSON file: {path}")
+        logger.info(f"Reading YAML file: {path}")
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, FileNotFoundError, IOError) as e:
-        logger.error(f"Error reading JSON file: {e}")
+            return yaml.safe_load(f) or {}
+    except (yaml.YAMLError, FileNotFoundError, IOError) as e:
+        logger.error(f"Error reading YAML file: {e}")
         return {}
 
 def write_to_file(content: str, file_path: Path) -> None:

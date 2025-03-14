@@ -1,8 +1,8 @@
 from .path_utils import find_resources_path
-from .io_utils import read_json
+from .io_utils import read_yaml
 from loguru import logger
 
-def create_prompt_from_json(file_name: str, placeholders: dict) -> dict:
+def create_prompt_from_yaml(file_name: str, placeholders: dict) -> dict:
     """
     Reads a JSON template file, replaces placeholders, and returns the formatted JSON.
 
@@ -19,7 +19,7 @@ def create_prompt_from_json(file_name: str, placeholders: dict) -> dict:
         The JSON data with placeholders replaced.
     """
 
-    data = read_json(find_resources_path() / 'prompts' / (file_name + '.json'))
+    data = read_yaml(find_resources_path() / 'prompts' / (file_name + '.yaml'))
     logger.debug(data)
     if "user" in data:
         try:
@@ -44,6 +44,7 @@ def map_prompt_to_payload_messages(prompt: dict) -> list:
     list
         A list of dictionaries formatted as chat messages.
     """
+    logger.debug('prompt: {}'.format(prompt))
     if not isinstance(prompt, dict) or "system" not in prompt or "user" not in prompt:
         raise ValueError("Input must be a dictionary containing 'system' and 'user' keys.")
 
