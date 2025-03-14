@@ -28,11 +28,14 @@ def generate_tests_for_function(class_code: str, class_name: str, function_name:
     logger.info(f"Generating tests for function {function_name}")
 
     target_path = (find_project_root() / 'generated_tests' / get_package_version()
-            / datetime.now().isoformat() / class_name / 'tests_per_function' / function_name)
+                   / datetime.now().isoformat().replace(":", "-")
+                   / "Af200EnergyBasicdataGeneralPanelControllerBean" / 'tests_per_function'
+                   / (function_name + ".java"))
     placeholders = {
         "function_name": function_name,
         "source_code": class_code
     }
+
     prompt = create_prompt_from_json('function_prompt', placeholders)
     write_to_file(stream_chat_completion(prompt), target_path)
 

@@ -1,7 +1,7 @@
 .idea/
 poetry.lock
 punito.egg-info/
-punito/generated_tests/
+/generated_tests/
 
 # Ignore Python bytecode cache
 __pycache__
