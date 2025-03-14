@@ -1,5 +1,6 @@
 from loguru import logger
 from pathlib import Path
+import json
 
 def read_file(path: str) -> str:
     """
@@ -24,7 +25,29 @@ def read_file(path: str) -> str:
         logger.error(f"Error reading file: {e}")
         return ""
 
-def write_to_file(content: str, file_path: str) -> None:
+def read_json(path: Path) -> dict:
+    """
+    Reads a JSON file from the given path and returns its content as a dictionary.
+
+    Parameters
+    ----------
+    path : str
+        Absolute path to the JSON file.
+
+    Returns
+    -------
+    dict
+        The parsed JSON content, or an empty dictionary in case of an error.
+    """
+    try:
+        logger.info(f"Reading JSON file: {path}")
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError, IOError) as e:
+        logger.error(f"Error reading JSON file: {e}")
+        return {}
+
+def write_to_file(content: str, file_path: Path) -> None:
     """
     Writes the provided content to a specified file path.
 
@@ -42,9 +65,8 @@ def write_to_file(content: str, file_path: str) -> None:
     """
 
     try:
-        file = Path(file_path)
-        file.parent.mkdir(parents=True, exist_ok=True)
-        with file.open("w", encoding="utf-8") as f:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open("w", encoding="utf-8") as f:
             f.write(content)
         logger.info(f"Content successfully written to {file_path}")
     except Exception as e:

@@ -2,7 +2,7 @@ import argparse
 from loguru import logger
 from punito.mockito_test_generator import generate_tests_for_class
 
-def main():
+def main() -> None:
     """
         Entry point for running the test generation script via CLI.
 
@@ -10,10 +10,6 @@ def main():
         and starts the process of generating JUnit Mockito tests for the specified Java class.
 
         It is intended to be used when the module is executed as a script.
-
-        Parameters
-        ----------
-        None
 
         Returns
         -------

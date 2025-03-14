@@ -1,12 +1,10 @@
 from loguru import logger
-from ..llm_client import stream_chat_completion
-from .utils import write_to_file
-from pathlib import Path
+from datetime import datetime
+from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_json
+from ..llm_client.streaming_client import stream_chat_completion
 
 
-# from  utils.io_utils import read_class_file
-
-def generate_tests_for_function(class_code: str, function_name: str) -> None:
+def generate_tests_for_function(class_code: str, class_name: str, function_name: str) -> None:
     """
      Generates JUnit Mockito tests for a specified Java function.
 
@@ -17,6 +15,8 @@ def generate_tests_for_function(class_code: str, function_name: str) -> None:
      ----------
      class_code : str
          The full source code of the Java class as a string.
+     class_name : str
+         The name of the class containing the function for which tests will be generated.
      function_name : str
          The name of the function for which tests should be generated.
 
@@ -25,17 +25,16 @@ def generate_tests_for_function(class_code: str, function_name: str) -> None:
      None
      """
 
-    tests_for_function = stream_chat_completion(class_code)
+    logger.info(f"Generating tests for function {function_name}")
 
-    current_file_path = Path(__file__).resolve()
-
-    # Find the root directory (punito)
-    root_path = next(p for p in current_file_path.parents if p.name == "punito")
-
-    target_path = root_path / "generated_tests" / "function1"
-    logger.debug(target_path)
-
-    write_to_file(tests_for_function, str(target_path))
+    target_path = (find_project_root() / 'generated_tests' / get_package_version()
+            / datetime.now().isoformat() / class_name / 'tests_per_function' / function_name)
+    placeholders = {
+        "function_name": function_name,
+        "source_code": class_code
+    }
+    prompt = create_prompt_from_json('function_prompt', placeholders)
+    write_to_file(stream_chat_completion(prompt), target_path)
 
 
 def generate_tests_for_class(class_path: str) -> None:
@@ -56,6 +55,7 @@ def generate_tests_for_class(class_path: str) -> None:
         None
         """
 
+    class_name = extract_class_name(class_path)
+    logger.info(f"Generating tests for class: {class_name}")
     # TODO: Implement the orchestration logic for test generation
-    # class_code = read_class_file(class_path)
-    # generate_tests_for_function(class_code, "function1")
+    # generate_tests_for_function(read_class_file(class_path), extract_class_name(class_path), "function1")

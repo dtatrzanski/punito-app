@@ -1,17 +1,13 @@
 from punito import generate_tests_for_function
-from punito import read_file
+from punito.utils import read_file, extract_class_name
+from punito.utils import get_package_version, get_default_settings
 
-
-def main():
+def main() -> None:
     """
        Development script for testing test generation for a specific function.
 
        This function sets predefined values for `class_name` and `function_name`
        and calls `generate_tests_for_function` to generate test cases.
-
-       Parameters
-       ----------
-       None
 
        Returns
        -------
@@ -34,8 +30,7 @@ def main():
     function_name = "onChangeMonthPeriod"
 
     class_code = read_file(class_path)
-    generate_tests_for_function(class_code, function_name)
-
+    generate_tests_for_function(class_code, extract_class_name(class_path), function_name)
 
 if __name__ == "__main__":
     main()

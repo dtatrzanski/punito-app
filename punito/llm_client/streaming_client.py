@@ -1,11 +1,11 @@
 import httpx
 from dynaconf import Dynaconf
-from pathlib import Path
 from loguru import logger
+from ..utils import find_project_root, map_prompt_to_payload_messages
 import json
 
 
-def stream_chat_completion(prompt: str) -> str:
+def stream_chat_completion(prompt: dict) -> str:
     """
     Streams a chat completion request to a configured language model API, collecting the generated response.
 
@@ -25,13 +25,11 @@ def stream_chat_completion(prompt: str) -> str:
         Exception: For any other unexpected errors during the API call or response handling.
     """
 
-    settings = Dynaconf(settings_files=[Path(__file__).resolve().parents[2] / "settings.toml"])['DEFAULT']
+    settings = Dynaconf(settings_files=[find_project_root() / "settings.toml"])['DEFAULT']
 
     payload = {
         "model": settings["MODEL"],
-        "messages": [{"role": "system",
-                      "content": "You are expert at writing Mockito tests. Write test using given, when, then convention. Mock all dependencies. Use Spy only for Mappers"},
-                     {"role": "user", "content": f"Write tests for this class {prompt}"}],
+        "messages": map_prompt_to_payload_messages(prompt),
         "stream": True
     }
 
