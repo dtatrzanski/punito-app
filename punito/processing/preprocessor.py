@@ -91,6 +91,17 @@ def extract_method_code(class_code: str, method: MethodDeclaration) -> str:
 
     return "\n".join(method_code)
 
+
+def extract_imports(class_code: str) -> str:
+    imports = []
+    lines = class_code.splitlines()
+
+    for line in lines:
+        if line.strip().startswith("import "):
+            imports.append(line.strip())
+
+    return "\n".join(imports)
+
 def get_function_with_dependencies(class_code: str, target_method_name: str) -> str:
     """
     Extracts a target method along with all its dependencies from Java source code.
@@ -123,5 +134,6 @@ def get_function_with_dependencies(class_code: str, target_method_name: str) -> 
             collect_dependencies(dep)
 
     collect_dependencies(target_method_name)
+    imports = extract_imports(class_code)
 
-    return "\n\n".join(collected_methods.values())
+    return f"{imports}\n\n" + "\n\n".join(collected_methods.values())
