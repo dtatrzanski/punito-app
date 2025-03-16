@@ -3,6 +3,7 @@ from datetime import datetime
 from punito import generate_tests_for_function
 from punito.utils import read_file, extract_class_name, write_to_file, find_project_root
 from punito.utils import get_package_version, get_default_settings
+from punito.processing import get_function_with_dependencies
 
 def main() -> None:
     """
@@ -32,7 +33,9 @@ def main() -> None:
     function_name = "onChangeMonthPeriod"
 
     class_code = read_file(class_path)
-    generate_tests_for_function(class_code, extract_class_name(class_path), function_name)
+    function_code = get_function_with_dependencies(class_code, function_name)
+
+    generate_tests_for_function(function_code, extract_class_name(class_path), function_name)
 
 if __name__ == "__main__":
     main()

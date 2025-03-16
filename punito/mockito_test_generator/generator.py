@@ -1,10 +1,12 @@
 from loguru import logger
 from datetime import datetime
-from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml
+from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml, \
+    read_file
 from ..llm_client.streaming_client import stream_chat_completion
+import javalang
 
 
-def generate_tests_for_function(class_code: str, class_name: str, function_name: str) -> None:
+def generate_tests_for_function(function_code: str, class_name: str, function_name: str) -> None:
     """
      Generates JUnit Mockito tests for a specified Java function.
 
@@ -13,8 +15,8 @@ def generate_tests_for_function(class_code: str, class_name: str, function_name:
 
      Parameters
      ----------
-     class_code : str
-         The full source code of the Java class as a string.
+     function_code: str : str
+         Source code of the Java function.
      class_name : str
          The name of the class containing the function for which tests will be generated.
      function_name : str
@@ -33,7 +35,7 @@ def generate_tests_for_function(class_code: str, class_name: str, function_name:
                    / (function_name + ".java"))
     placeholders = {
         "function_name": function_name,
-        "source_code": class_code
+        "source_code": function_code
     }
 
     prompt = create_prompt_from_yaml('function_prompt', placeholders)
@@ -42,23 +44,27 @@ def generate_tests_for_function(class_code: str, class_name: str, function_name:
 
 def generate_tests_for_class(class_path: str) -> None:
     """
-        Orchestrates the test generation process for a given Java class.
+     Orchestrates the test generation process for a given Java class.
 
-        Automates the selection of functions to test within the specified Java class,
-        generates unit tests for each function, and executes the tests. If errors occur, it reiterates
-        the process to refine test generation.
+     Automates the selection of functions to test within the specified Java class,
+     generates unit tests for each function, and executes the tests. If errors occur, it reiterates
+     the process to refine test generation.
 
-        Parameters
-        ----------
-        class_path : str
-            Path to the Java class file for which tests will be generated.
+     Parameters
+     ----------
+     class_path : str
+     Path to the Java class file for which tests will be generated.
 
-        Returns
-        -------
-        None
-        """
+     Returns
+     -------
+     None
+     """
 
     class_name = extract_class_name(class_path)
     logger.info(f"Generating tests for class: {class_name}")
+    # Parse the Java code
+    class_code = read_file(class_path)
+    tree = javalang.parse.parse(class_code)
+
     # TODO: Implement the orchestration logic for test generation
     # generate_tests_for_function(read_class_file(class_path), extract_class_name(class_path), "function1")
