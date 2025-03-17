@@ -4,33 +4,33 @@ from javalang.tree import CompilationUnit, MethodDeclaration
 
 def parse_java_class(class_code: str) -> CompilationUnit:
     """
-    Parses Java class code into an abstract syntax tree (AST).
+    Parses Java source code into an abstract syntax tree (AST).
 
     Parameters
     ----------
     class_code : str
-        The Java source code
+        The Java source code as a string.
 
     Returns
     -------
     CompilationUnit
-        The parsed Java AST representation of the class.
+        The root node of the Java AST.
     """
     return javalang.parse.parse(class_code)
 
 def get_all_methods(tree: CompilationUnit) -> Dict[str, MethodDeclaration]:
     """
-    Extracts all method declarations from a parsed Java AST.
+    Retrieves all method declarations from a Java AST.
 
     Parameters
     ----------
     tree : CompilationUnit
-        The parsed Java AST.
+        The root node of the Java AST.
 
     Returns
     -------
-    dict[str, MethodDeclaration]
-        A dictionary where keys are method names and values are their corresponding AST nodes.
+    Dict[str, MethodDeclaration]
+        A dictionary mapping method names to their corresponding AST nodes.
     """
     methods = {}
     for _, node in tree.filter(MethodDeclaration):
@@ -39,17 +39,17 @@ def get_all_methods(tree: CompilationUnit) -> Dict[str, MethodDeclaration]:
 
 def get_method_calls(method: MethodDeclaration) -> Set[str]:
     """
-    Extracts all method calls made within a given method.
+    Identifies all method calls within a given method declaration.
 
     Parameters
     ----------
     method : MethodDeclaration
-        The AST node representing the Java method.
+        The AST node representing the method.
 
     Returns
     -------
-    set[str]
-        A set of method names that are invoked within the given method.
+    Set[str]
+        A set of names of methods invoked within the given method.
     """
     calls = set()
     for _, node in method.filter(javalang.tree.MethodInvocation):
@@ -58,14 +58,14 @@ def get_method_calls(method: MethodDeclaration) -> Set[str]:
 
 def extract_method_code(class_code: str, method: MethodDeclaration) -> str:
     """
-    Extracts the source code of a specific method from the Java class code.
+    Extracts the source code for a specific method from Java source code.
 
     Parameters
     ----------
     class_code : str
-        The Java source code as a string.
+        The original Java source code.
     method : MethodDeclaration
-        The AST node representing the method to extract.
+        The AST node of the method to extract.
 
     Returns
     -------
@@ -93,6 +93,19 @@ def extract_method_code(class_code: str, method: MethodDeclaration) -> str:
 
 
 def extract_imports(class_code: str) -> str:
+    """
+    Extracts all import statements from Java source code.
+
+    Parameters
+    ----------
+    class_code : str
+        The Java source code as a string.
+
+    Returns
+    -------
+    str
+        All import statements concatenated into a single string.
+    """
     imports = []
     lines = class_code.splitlines()
 
@@ -102,38 +115,67 @@ def extract_imports(class_code: str) -> str:
 
     return "\n".join(imports)
 
-def get_function_with_dependencies(class_code: str, target_method_name: str) -> str:
+def get_dependencies(method_name: str, all_methods: Dict[str, MethodDeclaration], deps: Set[str]):
     """
-    Extracts a target method along with all its dependencies from Java source code.
+    Recursively collects all methods that a given method depends on.
+
+    Parameters
+    ----------
+    method_name : str
+        The name of the method whose dependencies to collect.
+    all_methods : Dict[str, MethodDeclaration]
+        A dictionary of all available methods.
+    deps : Set[str]
+        A set to store collected dependencies.
+
+    Returns
+    -------
+    None
+    """
+    if method_name not in all_methods or method_name in deps:
+        return
+    deps.add(method_name)
+
+    for call in get_method_calls(all_methods[method_name]):
+        get_dependencies(call, all_methods, deps)
+
+
+def get_function_with_individual_dependencies(class_code: str, target_method_name: str, all_methods: Dict[str, MethodDeclaration]) -> Dict[str, str]:
+    """
+    Generates separate code blocks for each direct dependency of a target method, including imports,
+    the target method, and nested dependencies.
 
     Parameters
     ----------
     class_code : str
-        The Java source code as a string.
+        The Java source code.
     target_method_name : str
-        The name of the method to extract along with its dependencies.
-
+        The name of the target method.
+    all_methods : Dict[str, MethodDeclaration]
+        A dictionary mapping method names to their corresponding AST nodes.
     Returns
     -------
-    str
-        The source code of the target method and all methods it directly or indirectly depends on.
+    Dict[str, str]
+        A dictionary where each key is a direct dependency method name, and each value is
+        the source code block containing the dependency, its nested dependencies, imports,
+        and the target method.
     """
-    tree = parse_java_class(class_code)
-    all_methods = get_all_methods(tree)
-    collected_methods = {}
-
-    def collect_dependencies(method_name: str):
-        if method_name in collected_methods or method_name not in all_methods:
-            return
-
-        method_node = all_methods[method_name]
-        collected_methods[method_name] = extract_method_code(class_code, method_node)
-
-        dependencies = get_method_calls(method_node)
-        for dep in dependencies:
-            collect_dependencies(dep)
-
-    collect_dependencies(target_method_name)
     imports = extract_imports(class_code)
 
-    return f"{imports}\n\n" + "\n\n".join(collected_methods.values())
+    target_calls = get_method_calls(all_methods[target_method_name])
+
+    dependency_blocks = {}
+
+    for dep in target_calls:
+        collected_methods = set()
+        get_dependencies(dep, all_methods, collected_methods)
+
+        methods_code = [extract_method_code(class_code, all_methods[method])
+                        for method in collected_methods]
+
+        target_method_code = extract_method_code(class_code, all_methods[target_method_name])
+
+        full_code = f"{imports}\n\n{target_method_code}\n\n" + "\n\n".join(methods_code)
+        dependency_blocks[dep] = full_code
+
+    return dependency_blocks

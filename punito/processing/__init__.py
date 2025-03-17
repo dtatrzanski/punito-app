@@ -1,1 +1,1 @@
-from .preprocessor import get_function_with_dependencies
+from .preprocessor import get_function_with_individual_dependencies, get_all_methods, parse_java_class
