@@ -1,6 +1,6 @@
 from typing import Set, Dict
 import javalang
-from javalang.tree import CompilationUnit, MethodDeclaration
+from javalang.tree import CompilationUnit, MethodDeclaration, MethodInvocation
 
 def parse_java_class(class_code: str) -> CompilationUnit:
     """
@@ -34,26 +34,35 @@ def get_all_methods(tree: CompilationUnit) -> Dict[str, MethodDeclaration]:
     """
     methods = {}
     for _, node in tree.filter(MethodDeclaration):
+        if node.body is None:
+            continue
         methods[node.name] = node
     return methods
 
-def get_method_calls(method: MethodDeclaration) -> Set[str]:
+def get_method_calls(method_name: str, all_methods) -> Set[str]:
     """
     Identifies all method calls within a given method declaration.
 
     Parameters
     ----------
-    method : MethodDeclaration
-        The AST node representing the method.
+    method_name : str
+        The name of AST node representing the method.
+    all_methods : Dict[str, MethodDeclaration]
+        A dictionary of all available methods.
 
     Returns
     -------
     Set[str]
         A set of names of methods invoked within the given method.
     """
+
+    method = all_methods[method_name]
+    method_names = all_methods.keys()
     calls = set()
-    for _, node in method.filter(javalang.tree.MethodInvocation):
-        calls.add(node.member)
+    for _, node in method.filter(MethodInvocation):
+        member = node.member
+        if member in method_names:
+            calls.add(node.member)
     return calls
 
 def extract_method_code(class_code: str, method: MethodDeclaration) -> str:
@@ -136,7 +145,7 @@ def get_dependencies(method_name: str, all_methods: Dict[str, MethodDeclaration]
         return
     deps.add(method_name)
 
-    for call in get_method_calls(all_methods[method_name]):
+    for call in get_method_calls(method_name, all_methods):
         get_dependencies(call, all_methods, deps)
 
 
@@ -162,7 +171,7 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
     """
     imports = extract_imports(class_code)
 
-    target_calls = get_method_calls(all_methods[target_method_name])
+    target_calls = get_method_calls(target_method_name, all_methods)
 
     dependency_blocks = {}
 
