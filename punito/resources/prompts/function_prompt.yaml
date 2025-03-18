@@ -3,6 +3,7 @@ system: |
   Generate a complete Java unit test class for the provided Java function, strictly following these instructions:
 
   TestWritingGuidelines:
+    - Skip @RunWith
     - Each test verifies exactly one scenario.
     - Add comments only if the intent is unclear from code alone.
     - Strictly follow the given/when/then convention.
@@ -25,22 +26,55 @@ system: |
     - Do NOT use @Before for test setup:
         - Define setup logic within private helper methods (e.g., setupModel()).
         - Explicitly call helper methods at the start of each test method.
-    - Do not mock the model:
-        - Initialize the model instance explicitly in setupModel().
-        - Inject the model (in setupModel function) instance using injectModel() provided by AbstractMockitoTest.
+    - Do not mock the model; instead, initialize it explicitly in setupModel() and inject it using injectModel() from AbstractMockitoTest.
+        Example:
+        private TaxDeclarationModelBean setupModel() {
+            BasicDataModelBean basicData = new BasicDataModelBean();
+            TaxDeclarationModelBean modelBean = new TaxDeclarationModelBean();
+            modelBean.setBasicData(basicData);
+            
+            injectModel(modelBean);
+            
+            return modelBean;
+        }
+    - ensure that setupModel() takes commonly set arguments as parameters instead of creating multiple variations of the method.
+      Use method overloading for cases where additional parameters are needed.
+      The default setupModel() should provide commonly used values, while overloaded versions should allow customization.
     - Centralize common test data as clearly named private constants at the top of the test class (avoid literal values directly in test methods).
     - Always use try-with-resources when mocking static methods via MockedStatic.
     - Explicitly test exception scenarios, asserting exact exception type and message content.
     - Ensure all constants and variables have clear, descriptive names.
     - Each test method must call ONLY the provided function directly:
         - Cover dependencies indirectly by initializing test data that triggers their execution.
+        - Each edge case in provided dependencies should be covered.
     - Import necessary classes based exclusively on the provided Java source code and dependencies.
-    - Use a static import for the specific constant (e.g., import static com.example.MonthPeriodTaxDeclarationDt.JANUARY;) and then use JANUARY directly without prefixing it with the class name.
+    - Use a static import for enum constants (e.g., import static com.example.MonthPeriodTaxDeclarationDt.JANUARY;), reference them directly without the class name, and never assign them to private constants.
 
 user: |
-  Generate a complete Java unit test class for the given Java function code and its dependencies, strictly adhering to the above TestWritingGuidelines.
-
-  FunctionName: {function_name}
-
-  JavaCode: |
+  Generate a Java unit test class for the given Java function code and its dependencies, strictly adhering to the above TestWritingGuidelines.
+  Write a full test covering all edge cases including the logic in available dependencies.
+  Below you will find:
+  - Execution Function: The public function that must be called to reach the tested function
+  - Tested Function: The core function under test, which must be fully covered. Its dependencies also have to be covered.
+  Make sure you prepare data correctly in setupModel() funtion, mentioned eariler, in order to reach tested function by calling execution function.
+  If tested function and execution function are the same, just write tests for the tested function.
+  
+  Execution Function: {execution_function_name}
+  Tested Function: {tested_function_name}
+  
+  Test all edge cases of {tested_function_name} function and all edge cases of functions called by {tested_function_name}.
+  Then test edge cases of functions called by functions called by {tested_function_name} and so on.
+  Make sure you cover all edge cases.
+  Tests should be written only for {tested_function_name}. The rest of the code was provided only as a context.
+  Do you best to write all necessary tests, lots of content is good.
+  
+  Output only the code without any additional information.
+  
+  Test example: |
+   {test_example}
+  
+  Note: This was also an example of test, which demonstrates good practices and project conventions.
+  Do not use constants or mocks defined there. Write your tests based only on class code provided below.
+  
+  Code to test: |
     {source_code}

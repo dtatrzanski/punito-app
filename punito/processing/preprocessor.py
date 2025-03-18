@@ -1,6 +1,7 @@
 from typing import Set, Dict
 import javalang
-from javalang.tree import CompilationUnit, MethodDeclaration, MethodInvocation
+import re
+from javalang.tree import CompilationUnit, MethodDeclaration, MethodInvocation, FieldDeclaration, ClassDeclaration
 
 def parse_java_class(class_code: str) -> CompilationUnit:
     """
@@ -17,6 +18,54 @@ def parse_java_class(class_code: str) -> CompilationUnit:
         The root node of the Java AST.
     """
     return javalang.parse.parse(class_code)
+
+def get_class_definition(class_code: str) -> str:
+    """
+    Extracts the full class definition, including annotations, from the provided Java source code.
+
+    Parameters
+    ----------
+    class_code : str
+        The source code of the class as a string.
+
+    Returns
+    -------
+    str
+        The class definition block as a string. Includes annotations and extends/implements clauses.
+    """
+    pattern = r"((?:@\w+\s*)*)\b(public\s+class\s+\w+\s*(?:extends\s+[^{]+)?(?:\s+implements\s+[^{]+)?)\s*\{"
+    match = re.search(pattern, class_code, re.MULTILINE)
+    return (match.group(1) + match.group(2) + " {").strip() if match else ""
+
+
+def get_class_fields(class_code: str) -> str:
+    """
+    Extracts field declarations from the provided Java source code while preserving complex initializations.
+
+    Parameters
+    ----------
+    class_code : str
+        The source code of the class as a string.
+
+    Returns
+    -------
+    str
+        A string containing all field declarations, formatted correctly with initial values.
+    """
+    pattern = r"(?P<modifiers>(?:\b(private|protected|public|static|final)\b\s*)+)\s*(?P<type>[\w<>,\s]+)\s+(?P<name>\w+)\s*(?P<init>=\s*[^;]+)?;"
+    matches = re.finditer(pattern, class_code, re.MULTILINE)
+
+    fields = []
+    for match in matches:
+        field_declaration = f"{match.group('modifiers').strip()} {match.group('type').strip()} {match.group('name').strip()}"
+        if match.group('init'):
+            field_declaration += f" {match.group('init').strip()}"
+        field_declaration += ";"
+        fields.append(field_declaration)
+
+    return "\n".join(fields)
+
+
 
 def get_all_methods(tree: CompilationUnit) -> Dict[str, MethodDeclaration]:
     """
@@ -170,11 +219,12 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
         and the target method.
     """
     imports = extract_imports(class_code)
-
+    class_definition = get_class_definition(class_code)
+    class_fields = get_class_fields(class_code)
     target_calls = get_method_calls(target_method_name, all_methods)
 
     dependency_blocks = {}
-
+    # TODO skip public dependencies -> they will be tested later separately
     for dep in target_calls:
         collected_methods = set()
         get_dependencies(dep, all_methods, collected_methods)
@@ -184,7 +234,7 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
 
         target_method_code = extract_method_code(class_code, all_methods[target_method_name])
 
-        full_code = f"{imports}\n\n{target_method_code}\n\n" + "\n\n".join(methods_code)
+        full_code = f"{imports}\n\n{class_definition}\n{class_fields}\n\n{target_method_code}\n\n" + "\n\n".join(methods_code)
         dependency_blocks[dep] = full_code
 
     return dependency_blocks

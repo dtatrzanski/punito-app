@@ -1,12 +1,14 @@
 from loguru import logger
 from datetime import datetime
 from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml, \
-    read_file
+    read_file, save_json_to_txt
 from ..llm_client.streaming_client import stream_chat_completion
 import javalang
+import json
 
 
-def generate_tests_for_function(function_code: str, class_name: str, function_name: str) -> None:
+def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str,
+                                example_code='') -> None:
     """
      Generates JUnit Mockito tests for a specified Java function.
 
@@ -19,27 +21,37 @@ def generate_tests_for_function(function_code: str, class_name: str, function_na
          Source code of the Java function.
      class_name : str
          The name of the class containing the function for which tests will be generated.
-     function_name : str
-         The name of the function for which tests should be generated.
+     exe_fn_name : str
+            The name of the public function which will be executed on each test
+     tst_fn_name : str
+            Generated tests will be focused on testing this function. If it is a private function, it will be triggered directly or indirectly from the execution function.
+     example_code : str
+         Example test to be used in the test generation process.
 
      Returns
      -------
      None
      """
 
-    logger.info(f"Generating tests for function {function_name}")
+    logger.info(f"Generating tests for function {tst_fn_name} by executing {exe_fn_name}")
 
-    target_path = (find_project_root() / 'generated_tests' / get_package_version()
+    common_path = (find_project_root() / 'generated_tests' / get_package_version()
                    / datetime.now().isoformat().replace(":", "-")
-                   / class_name / 'tests_per_function'
-                   / (function_name + ".java"))
+                   / class_name / 'tests_per_function' / 'public_functions' / f"{exe_fn_name}")
+
+    target_path = common_path / f"{tst_fn_name}.java"
+    prompt_path = common_path / f"function_prompt_{tst_fn_name}.txt"
+
     placeholders = {
-        "function_name": function_name,
-        "source_code": function_code
+        "execution_function_name": exe_fn_name,
+        "tested_function_name": tst_fn_name,
+        "source_code": function_code,
+        "test_example": example_code
     }
 
     prompt = create_prompt_from_yaml('function_prompt', placeholders)
     write_to_file(stream_chat_completion(prompt), target_path)
+    save_json_to_txt(json.dumps(prompt), prompt_path)
 
 
 def generate_tests_for_class(class_path: str) -> None:

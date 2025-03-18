@@ -1,8 +1,10 @@
 from loguru import logger
 from pathlib import Path
 import yaml
+import json
 
-def read_file(path: str) -> str:
+
+def read_file(path: Path) -> str:
     """
     Reads a file from the given path.
 
@@ -25,6 +27,7 @@ def read_file(path: str) -> str:
         logger.error(f"Error reading file: {e}")
         return ""
 
+
 def read_yaml(path: Path) -> dict:
     """
     Reads a YAML file from the given path and returns its content as a dictionary.
@@ -46,6 +49,7 @@ def read_yaml(path: Path) -> dict:
     except (yaml.YAMLError, FileNotFoundError, IOError) as e:
         logger.error(f"Error reading YAML file: {e}")
         return {}
+
 
 def write_to_file(content: str, file_path: Path) -> None:
     """
@@ -71,3 +75,33 @@ def write_to_file(content: str, file_path: Path) -> None:
         logger.info(f"Content successfully written to {file_path}")
     except Exception as e:
         logger.error(f"Error writing file: {e}")
+
+
+def save_json_to_txt(json_string: str, file_path: Path):
+    """
+    Save a JSON string to a text file in a formatted manner.
+
+    Parameters
+    ----------
+    json_string : str
+        A JSON-formatted string to be saved.
+    file_path : Path
+        The path to the text file where the JSON data should be stored.
+
+    Raises
+    ------
+    json.JSONDecodeError
+        If `json_string` is not a valid JSON format.
+    IOError
+        If there is an issue writing to `file_path`.
+    """
+    try:
+        parsed_data = json.loads(json_string)
+        content = "\n".join(f"{k}:\n{v}\n" for k, v in parsed_data.items())
+
+        write_to_file(content, file_path)
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON format: {e}")
+    except IOError as e:
+        logger.error(f"Error writing to file: {e}")

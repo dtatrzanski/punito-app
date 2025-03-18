@@ -23,13 +23,13 @@ def find_resources_path() -> Path:
     """
     return find_project_root() / 'punito' / 'resources'
 
-def extract_class_name(file_path: str) -> str:
+def extract_class_name(path: Path) -> str:
     """
         Extracts the Java class name from a given file path.
 
         Parameters
         ----------
-        file_path : str
+        path : Path
             The path to the Java file.
 
         Returns
@@ -42,8 +42,6 @@ def extract_class_name(file_path: str) -> str:
         ValueError
             If the file is not a `.java` file.
         """
-
-    path = Path(file_path)
 
     if path.suffix != ".java":
         raise ValueError(f"Invalid file type: {path.suffix}. Expected a .java file.")
