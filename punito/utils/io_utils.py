@@ -4,6 +4,10 @@ import yaml
 import json
 
 
+def format_long_path(path: Path) -> str:
+    """Convert a pathlib.Path object to a long Windows path (\\?\ prefix)."""
+    return f"\\\\?\\{str(path.resolve())}"
+
 def read_file(path: Path) -> str:
     """
     Reads a file from the given path.
@@ -21,7 +25,8 @@ def read_file(path: Path) -> str:
 
     try:
         logger.info(f"Reading file: {path}")
-        with open(path, "r", encoding="utf-8") as f:
+        long_file_path: str = format_long_path(path)
+        with open(long_file_path, "r", encoding="utf-8") as f:
             return f.read()
     except Exception as e:
         logger.error(f"Error reading file: {e}")
@@ -70,7 +75,8 @@ def write_to_file(content: str, file_path: Path) -> None:
 
     try:
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with file_path.open("w", encoding="utf-8") as f:
+        long_file_path: str = format_long_path(file_path)
+        with open(long_file_path, "w", encoding="utf-8") as f:
             f.write(content)
         logger.info(f"Content successfully written to {file_path}")
     except Exception as e:

@@ -14,6 +14,7 @@ system: |
     - Use verify(mock, times(n)).method(arguments) only for external dependencies without accessible source code. 
       Do NOT verify calls to internal methods or methods whose source code you have access to. Instead, explicitly assert all outcomes or state changes caused by these internal method calls.
       Always use static imports for Mockito methods.
+    - never use verify() on sut (system under test).
     - The test class must extend de.itzbund.moeve.basis.arch.test.mockito.AbstractMockitoTest 
       (provides assertj soft assertions via this.softly.assertThat(...)).
     - Explicitly assert the final state (e.g., boolean flags, return values, model updates).
