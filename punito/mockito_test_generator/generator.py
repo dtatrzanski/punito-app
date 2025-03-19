@@ -1,5 +1,4 @@
 from loguru import logger
-from datetime import datetime
 from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml, \
     read_file, save_json_to_txt
 from ..llm_client.streaming_client import stream_chat_completion
@@ -34,7 +33,7 @@ def generate_plan_for_function(function_code: str, class_name: str, exe_fn_name:
     return plan
 
 def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str,
-                                tests_plan: str, example_code='') -> None:
+                                tests_plan: str, example_code='') -> str:
     """
      Generates JUnit Mockito tests for a specified Java function.
 
@@ -79,6 +78,29 @@ def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name
     }
 
     prompt = create_prompt_from_yaml('tester_prompt', placeholders)
+    tests = stream_chat_completion(prompt)
+    write_to_file(tests, target_path)
+    save_json_to_txt(json.dumps(prompt), prompt_path)
+
+    return tests
+
+def generate_review_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, plan: str, test_code: str, date_time: str) -> str:
+    logger.info(f"Generating review for tests of function {tst_fn_name}, triggered by executing {exe_fn_name}")
+
+    common_path = get_common_path(class_name, exe_fn_name, date_time)
+
+    target_path = common_path / tst_fn_name / f"review_{tst_fn_name}.txt"
+    prompt_path = common_path / tst_fn_name / "prompts" / f"reviewer_prompt_{tst_fn_name}.txt"
+
+    placeholders = {
+        "tested_function_name": exe_fn_name,
+        "execution_function_name": tst_fn_name,
+        "source_code": function_code,
+        "tests_plan": plan,
+        "generated_test_code": test_code
+    }
+
+    prompt = create_prompt_from_yaml('reviewer_prompt', placeholders)
 
     write_to_file(stream_chat_completion(prompt), target_path)
     save_json_to_txt(json.dumps(prompt), prompt_path)
