@@ -79,3 +79,7 @@ user: |
   
   Code to test: |
     {source_code}
+
+  There are planned tests below. Write all tests from the plan and perform all mentioned assertion. Do not skip anything.
+  Tests to write: |
+    {tests_plan}

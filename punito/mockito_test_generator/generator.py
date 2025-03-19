@@ -11,7 +11,7 @@ def get_common_path(class_name: str, exe_fn_name: str, date_time: str):
                    / date_time
                    / class_name / 'tests_per_public_function' / f"{exe_fn_name}")
 
-def generate_plan_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str):
+def generate_plan_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str) -> str:
     logger.info(f"Generating plan for testing function {tst_fn_name} by executing {exe_fn_name}")
 
     common_path = get_common_path(class_name, exe_fn_name, date_time)
@@ -22,16 +22,19 @@ def generate_plan_for_function(function_code: str, class_name: str, exe_fn_name:
         "source_code": function_code,
     }
 
-    prompt = create_prompt_from_yaml('function_plan_prompt', placeholders)
+    prompt = create_prompt_from_yaml('planner_prompt', placeholders)
 
     target_path = common_path / tst_fn_name / f"plan_{tst_fn_name}.txt"
-    prompt_path = common_path / tst_fn_name / "prompts" / f"plan_prompt_{tst_fn_name}.txt"
-    logger.debug(f"Writing plan to {target_path}")
-    write_to_file(stream_chat_completion(prompt), target_path)
+    prompt_path = common_path / tst_fn_name / "prompts" / f"planner_prompt_{tst_fn_name}.txt"
+
+    plan = stream_chat_completion(prompt)
+    write_to_file(plan, target_path)
     save_json_to_txt(json.dumps(prompt), prompt_path)
 
+    return plan
+
 def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str,
-                                example_code='') -> None:
+                                tests_plan: str, example_code='') -> None:
     """
      Generates JUnit Mockito tests for a specified Java function.
 
@@ -50,6 +53,8 @@ def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name
             Generated tests will be focused on testing this function. If it is a private function, it will be triggered directly or indirectly from the execution function.
      date_time : str
             The date and time when the tests were generated. Should be the same for one chunk.
+     tests_plan : str
+            The plan for tests generation process including test cases and assertions.
      example_code : str
          Example test to be used in the test generation process.
 
@@ -63,18 +68,18 @@ def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name
     common_path = get_common_path(class_name, exe_fn_name, date_time)
 
     target_path = common_path / tst_fn_name / f"{tst_fn_name}.java"
-    prompt_path = common_path / tst_fn_name / "prompts" / f"function_prompt_{tst_fn_name}.txt"
+    prompt_path = common_path / tst_fn_name / "prompts" / f"tester_prompt_{tst_fn_name}.txt"
 
     placeholders = {
         "execution_function_name": exe_fn_name,
         "tested_function_name": tst_fn_name,
         "source_code": function_code,
-        "test_example": example_code
+        "test_example": example_code,
+        "tests_plan": tests_plan
     }
 
-    prompt = create_prompt_from_yaml('function_prompt', placeholders)
+    prompt = create_prompt_from_yaml('tester_prompt', placeholders)
 
-    logger.debug(f"Writing tests to {target_path}")
     write_to_file(stream_chat_completion(prompt), target_path)
     save_json_to_txt(json.dumps(prompt), prompt_path)
 

@@ -50,8 +50,8 @@ def main() -> None:
 
     date_time = datetime.now().isoformat().replace(":", "-")
 
-    generate_plan_for_function(function_code[tested_function_name], extract_class_name(class_path), execution_function_name, tested_function_name, date_time)
-    generate_tests_for_function(function_code[tested_function_name], extract_class_name(class_path), execution_function_name, tested_function_name, date_time, example_code)
+    plan = generate_plan_for_function(function_code[tested_function_name], extract_class_name(class_path), execution_function_name, tested_function_name, date_time)
+    generate_tests_for_function(function_code[tested_function_name], extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
 
 if __name__ == "__main__":
     main()
