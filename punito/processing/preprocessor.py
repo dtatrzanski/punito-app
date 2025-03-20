@@ -1,7 +1,8 @@
-from typing import Set, Dict
 import javalang
 import re
+from typing import Set, Dict
 from javalang.tree import CompilationUnit, MethodDeclaration, MethodInvocation, FieldDeclaration, ClassDeclaration
+
 
 def parse_java_class(class_code: str) -> CompilationUnit:
     """
@@ -18,6 +19,7 @@ def parse_java_class(class_code: str) -> CompilationUnit:
         The root node of the Java AST.
     """
     return javalang.parse.parse(class_code)
+
 
 def get_class_definition(class_code: str) -> str:
     """
@@ -66,7 +68,6 @@ def get_class_fields(class_code: str) -> str:
     return "\n".join(fields)
 
 
-
 def get_all_methods(tree: CompilationUnit) -> Dict[str, MethodDeclaration]:
     """
     Retrieves all method declarations from a Java AST.
@@ -87,6 +88,7 @@ def get_all_methods(tree: CompilationUnit) -> Dict[str, MethodDeclaration]:
             continue
         methods[node.name] = node
     return methods
+
 
 def get_method_calls(method_name: str, all_methods) -> Set[str]:
     """
@@ -113,6 +115,7 @@ def get_method_calls(method_name: str, all_methods) -> Set[str]:
         if member in method_names:
             calls.add(node.member)
     return calls
+
 
 def extract_method_code(class_code: str, method: MethodDeclaration) -> str:
     """
@@ -173,6 +176,7 @@ def extract_imports(class_code: str) -> str:
 
     return "\n".join(imports)
 
+
 def get_dependencies(method_name: str, all_methods: Dict[str, MethodDeclaration], deps: Set[str]):
     """
     Recursively collects all methods that a given method depends on.
@@ -198,7 +202,8 @@ def get_dependencies(method_name: str, all_methods: Dict[str, MethodDeclaration]
         get_dependencies(call, all_methods, deps)
 
 
-def get_function_with_individual_dependencies(class_code: str, target_method_name: str, all_methods: Dict[str, MethodDeclaration]) -> Dict[str, str]:
+def get_function_with_individual_dependencies(class_code: str, target_method_name: str,
+                                              all_methods: Dict[str, MethodDeclaration]) -> Dict[str, str]:
     """
     Generates separate code blocks for each direct dependency of a target method, including imports,
     the target method, and nested dependencies.
@@ -234,7 +239,20 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
 
         target_method_code = extract_method_code(class_code, all_methods[target_method_name])
 
-        full_code = f"{imports}\n\n{class_definition}\n{class_fields}\n\n{target_method_code}\n\n" + "\n\n".join(methods_code)
+        full_code = f"{imports}\n\n{class_definition}\n{class_fields}\n\n{target_method_code}\n\n" + "\n\n".join(
+            methods_code)
         dependency_blocks[dep] = full_code
 
     return dependency_blocks
+
+
+def get_chunked_code(class_code: str) -> Dict[str, Dict[str, str]]:
+    tree = parse_java_class(class_code)
+    all_methods = get_all_methods(tree)
+
+    public_methods = [
+        method_name for method_name, method in all_methods.items() if "public" in method.modifiers
+    ]
+
+    return {method: get_function_with_individual_dependencies(class_code, method, all_methods)
+            for method in public_methods}
