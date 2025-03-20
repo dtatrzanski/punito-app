@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from punito import generate_tests_for_function, generate_plan_for_function, generate_review_for_function
+from punito import generate_tests_for_function, generate_plan_for_function, generate_review_for_function, generate_refined_tests
 from punito.utils import read_file, extract_class_name, write_to_file, find_project_root
 from punito.utils import get_package_version, get_default_settings, save_json_to_txt
 from punito.processing import get_function_with_individual_dependencies, get_all_methods, parse_java_class
@@ -55,6 +55,8 @@ def main() -> None:
     tests = generate_tests_for_function(function_code[tested_function_name], extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
 
     review = generate_review_for_function(function_code[tested_function_name], extract_class_name(class_path), execution_function_name, tested_function_name, plan, tests, date_time)
+
+    refined_tests = generate_refined_tests(function_code[tested_function_name], extract_class_name(class_path), execution_function_name, tested_function_name, date_time, review, tests)
 
 if __name__ == "__main__":
     main()

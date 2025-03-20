@@ -66,7 +66,7 @@ def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name
 
     common_path = get_common_path(class_name, exe_fn_name, date_time)
 
-    target_path = common_path / tst_fn_name / f"{tst_fn_name}.java"
+    target_path = common_path / tst_fn_name / f"initial_{tst_fn_name}.java"
     prompt_path = common_path / tst_fn_name / "prompts" / f"tester_prompt_{tst_fn_name}.txt"
 
     placeholders = {
@@ -105,6 +105,29 @@ def generate_review_for_function(function_code: str, class_name: str, exe_fn_nam
     write_to_file(stream_chat_completion(prompt), target_path)
     save_json_to_txt(json.dumps(prompt), prompt_path)
 
+def generate_refined_tests(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str, review_report: str, tests: str) -> str:
+    logger.info(f"Refining tests for function {tst_fn_name} by executing {exe_fn_name}")
+
+    common_path = get_common_path(class_name, exe_fn_name, date_time)
+
+    target_path = common_path / tst_fn_name / f"{tst_fn_name}.java"
+    prompt_path = common_path / tst_fn_name / "prompts" / f"refiner_prompt_{tst_fn_name}.txt"
+
+    placeholders = {
+        "execution_function_name": exe_fn_name,
+        "tested_function_name": tst_fn_name,
+        "source_code": function_code,
+        "generated_test_code": tests,
+        "review_report": review_report
+    }
+
+    prompt = create_prompt_from_yaml('refiner_prompt', placeholders)
+
+    refined_tests = stream_chat_completion(prompt)
+    write_to_file(refined_tests, target_path)
+    save_json_to_txt(json.dumps(prompt), prompt_path)
+
+    return refined_tests
 
 def generate_tests_for_class(class_path: str) -> None:
     """
