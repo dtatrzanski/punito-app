@@ -316,6 +316,7 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
 
 
 def get_chunked_code(class_code: str) -> Dict[str, Dict[str, str]]:
+    # TODO remove chunks for public functions which only calls other public functions and does not have any logic
     tree = parse_java_class(class_code)
     all_methods = get_all_methods(tree)
 

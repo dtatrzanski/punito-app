@@ -83,26 +83,9 @@ def write_to_file(content: str, file_path: Path) -> None:
         logger.error(f"Error writing file: {e}")
 
 
-def format_value(value, indent: int = 0) -> str:
-    indentation = '    ' * indent
-    if isinstance(value, dict):
-        inner = "\n".join(f"{indentation}    {k}: {format_value(v, indent + 1)}" for k, v in value.items())
-        return f"{{\n{inner}\n{indentation}}}"
-    elif isinstance(value, list):
-        inner = "\n".join(f"{indentation}    - {format_value(item, indent + 1)}" for item in value)
-        return f"[\n{inner}\n{indentation}]"
-    elif isinstance(value, str) and ('\n' in value or value.strip().startswith(('import', 'public', '@', 'private', 'protected', 'class', 'def'))):
-        # Treat string as code
-        code_lines = "\n".join(f"{indentation}    {line}" for line in value.strip().splitlines())
-        return f"\n{indentation}'\n{code_lines}\n{indentation}'"
-    else:
-        return f"{value}"
-
 def save_json_to_txt(json_string: str, file_path: Path):
     """
-    Save a JSON string to a text file with improved formatting:
-    - Nested objects are clearly indented.
-    - Code snippets are properly formatted.
+    Save a JSON string to a text file in a formatted manner.
 
     Parameters
     ----------
@@ -120,8 +103,10 @@ def save_json_to_txt(json_string: str, file_path: Path):
     """
     try:
         parsed_data = json.loads(json_string)
-        content = "\n".join(f"{k}:\n{format_value(v, 1)}\n" for k, v in parsed_data.items())
+        content = "\n".join(f"{k}:\n{v}\n" for k, v in parsed_data.items())
+
         write_to_file(content, file_path)
+
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON format: {e}")
     except IOError as e:
