@@ -3,7 +3,7 @@ from datetime import datetime
 from punito import generate_tests_for_function, generate_plan_for_function, generate_review_for_function, generate_refined_tests
 from punito.utils import read_file, extract_class_name, write_to_file, find_project_root
 from punito.utils import get_package_version, get_default_settings, save_json_to_txt
-from punito.processing import get_function_with_individual_dependencies, get_all_methods, parse_java_class
+from punito.processing import get_function_with_individual_dependencies, get_all_methods, parse_java_class, get_chunked_code
 from loguru import logger
 from pathlib import Path
 import json
@@ -44,6 +44,7 @@ def main() -> None:
     example_code = read_file(example_path)
     class_tree = parse_java_class(class_code)
 
+    chunked_code = get_chunked_code(class_code)
     function_code = get_function_with_individual_dependencies(class_code, execution_function_name, get_all_methods(class_tree))
 
     save_json_to_txt(json.dumps(function_code), Path(__file__).parent / "debug" / "generate_tests_for_function" / "extracted_function.txt")

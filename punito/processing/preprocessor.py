@@ -177,7 +177,24 @@ def extract_imports(class_code: str) -> str:
     return "\n".join(imports)
 
 
-def get_dependencies(method_name: str, all_methods: Dict[str, MethodDeclaration], deps: Set[str]):
+def is_public_method(method: MethodDeclaration) -> bool:
+    """
+    Checks if a method is public.
+
+    Parameters
+    ----------
+    method : MethodDeclaration
+        The AST node representing the method.
+
+    Returns
+    -------
+    bool
+        True if the method is public, False otherwise.
+    """
+    return "public" in method.modifiers
+
+
+def get_dependencies(method_name: str, all_methods: Dict[str, MethodDeclaration], deps: Set[str]) -> None:
     """
     Recursively collects all methods that a given method depends on.
 
@@ -194,16 +211,46 @@ def get_dependencies(method_name: str, all_methods: Dict[str, MethodDeclaration]
     -------
     None
     """
-    if method_name not in all_methods or method_name in deps:
+    if (method_name not in all_methods
+            or method_name in deps
+            or is_public_method(all_methods[method_name])):
         return
+
     deps.add(method_name)
 
     for call in get_method_calls(method_name, all_methods):
         get_dependencies(call, all_methods, deps)
 
+def is_pure_getter_or_setter(method_code: str, class_fields: set) -> bool:
+    # Normalize whitespace (remove excess spaces, line breaks)
+    method_code = re.sub(r'\s+', ' ', method_code.strip())
+
+    # Getter: strictly 'return field;'
+    getter_pattern = re.compile(
+        r'^public\s+[\w<>[\]]+\s+\w+\s*\(\s*\)\s*\{\s*return\s+(?:this\.)?(\w+)\s*;\s*\}$'
+    )
+
+    # Setter: strictly 'this.field = param;' allowing optional final modifier
+    setter_pattern = re.compile(
+        r'^public\s+void\s+\w+\s*\(\s*(?:final\s+)?[\w<>[\]]+\s+(\w+)\s*\)\s*\{\s*(?:this\.)?(\w+)\s*=\s*\1\s*;\s*\}$'
+    )
+
+    getter_match = getter_pattern.match(method_code)
+    if getter_match:
+        field_name = getter_match.group(1)
+        return field_name in class_fields
+
+    setter_match = setter_pattern.match(method_code)
+    if setter_match:
+        field_name = setter_match.group(2)
+        return field_name in class_fields
+
+    return False
+
 
 def get_function_with_individual_dependencies(class_code: str, target_method_name: str,
-                                              all_methods: Dict[str, MethodDeclaration]) -> Dict[str, str]:
+                                              all_methods: Dict[str, MethodDeclaration],
+                                              extracted_methods: Set[str]) -> Dict[str, str]:
     """
     Generates separate code blocks for each direct dependency of a target method, including imports,
     the target method, and nested dependencies.
@@ -216,6 +263,9 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
         The name of the target method.
     all_methods : Dict[str, MethodDeclaration]
         A dictionary mapping method names to their corresponding AST nodes.
+    extracted_methods : Set[str]
+        A set to store the names of all already extracted methods.
+
     Returns
     -------
     Dict[str, str]
@@ -229,18 +279,32 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
     target_calls = get_method_calls(target_method_name, all_methods)
 
     dependency_blocks = {}
-    # TODO skip public dependencies -> they will be tested later separately
+    target_method_code = extract_method_code(class_code, all_methods[target_method_name])
+    direct_dep_code = [extract_method_code(class_code, all_methods[method])
+                    for method in target_calls if not is_public_method(all_methods[method])]
+
+    basic_context_code = f"{imports}\n\n{class_definition}\n{class_fields}\n\n{target_method_code}\n\n" + "\n\n".join(
+            direct_dep_code)
+
+    dependency_blocks[
+        target_method_name] = basic_context_code
+
     for dep in target_calls:
+        method = all_methods[dep]
+        if is_public_method(method) or dep in extracted_methods:
+            continue
+
+        extracted_methods.add(dep)
+
         collected_methods = set()
         get_dependencies(dep, all_methods, collected_methods)
 
         methods_code = [extract_method_code(class_code, all_methods[method])
                         for method in collected_methods]
 
-        target_method_code = extract_method_code(class_code, all_methods[target_method_name])
-
         full_code = f"{imports}\n\n{class_definition}\n{class_fields}\n\n{target_method_code}\n\n" + "\n\n".join(
             methods_code)
+
         dependency_blocks[dep] = full_code
 
     return dependency_blocks
@@ -250,9 +314,23 @@ def get_chunked_code(class_code: str) -> Dict[str, Dict[str, str]]:
     tree = parse_java_class(class_code)
     all_methods = get_all_methods(tree)
 
+    parsed_class = parse_java_class(class_code)
+    # TODO integrate with get_class_fields
+    fields = {declarator.name for _, node in parsed_class.filter(FieldDeclaration)
+              for declarator in node.declarators}
+
+    # List of public methods that are not pure getters or setters
     public_methods = [
-        method_name for method_name, method in all_methods.items() if "public" in method.modifiers
+        method_name
+        for method_name, method in all_methods.items()
+        if "public" in method.modifiers
+           and not is_pure_getter_or_setter(
+            extract_method_code(class_code, all_methods[method_name]),
+            fields
+        )
     ]
 
-    return {method: get_function_with_individual_dependencies(class_code, method, all_methods)
+    extracted_methods = set()
+
+    return {method: get_function_with_individual_dependencies(class_code, method, all_methods, extracted_methods)
             for method in public_methods}
