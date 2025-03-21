@@ -280,8 +280,11 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
 
     dependency_blocks = {}
     target_method_code = extract_method_code(class_code, all_methods[target_method_name])
+
+    direct_deps = [method for method in target_calls if not is_public_method(all_methods[method])]
+
     direct_dep_code = [extract_method_code(class_code, all_methods[method])
-                    for method in target_calls if not is_public_method(all_methods[method])]
+                    for method in direct_deps]
 
     basic_context_code = f"{imports}\n\n{class_definition}\n{class_fields}\n\n{target_method_code}\n\n" + "\n\n".join(
             direct_dep_code)
@@ -299,11 +302,13 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
         collected_methods = set()
         get_dependencies(dep, all_methods, collected_methods)
 
+        # remove direct dependency, because it was already extracted
+        collected_methods.discard(dep)
+
         methods_code = [extract_method_code(class_code, all_methods[method])
                         for method in collected_methods]
 
-        full_code = f"{imports}\n\n{class_definition}\n{class_fields}\n\n{target_method_code}\n\n" + "\n\n".join(
-            methods_code)
+        full_code = f"{basic_context_code}\n\n" + "\n\n".join(methods_code)
 
         dependency_blocks[dep] = full_code
 
