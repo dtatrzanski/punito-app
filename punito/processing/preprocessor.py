@@ -315,6 +315,44 @@ def get_function_with_individual_dependencies(class_code: str, target_method_nam
     return dependency_blocks
 
 
+# Utility function to determine if a method only calls public methods and does nothing else
+def is_removable(chunk_code):
+    try:
+        tree = javalang.parse.parse(chunk_code + '}')
+    except Exception:
+        # Fallback or assume non-removable if parsing fails.
+        return False
+
+    # Walk through the AST nodes.
+    for _, node in tree:
+        # Check for method invocations on model that start with 'set'
+        if isinstance(node, javalang.tree.MethodInvocation):
+            qualifier = getattr(node, 'qualifier', None)
+            if node.member.startswith('set'):
+                return False  # Found a state update
+        # Check for assignment expressions (e.g., variable assignments)
+        if isinstance(node, javalang.tree.Assignment):
+            return False
+    return True  # No state updates found; likely only delegation
+
+
+# Filter function
+def filter_chunks(chunks: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    def should_keep(code):
+        try:
+            return not is_removable(code)
+        except Exception as e:
+            print(f"Parsing error: {e}")
+            return True  # Keep if parsing fails
+
+    filtered_chunks = {}
+    for parent, children in chunks.items():
+        filtered_children = {k: v for k, v in children.items() if should_keep(v)}
+        if filtered_children:
+            filtered_chunks[parent] = filtered_children
+
+    return filtered_chunks
+
 def get_chunked_code(class_code: str) -> Dict[str, Dict[str, str]]:
     # TODO remove chunks for public functions which only calls other public functions and does not have any logic
     tree = parse_java_class(class_code)
@@ -337,6 +375,7 @@ def get_chunked_code(class_code: str) -> Dict[str, Dict[str, str]]:
     ]
 
     extracted_methods = set()
-
-    return {method: get_function_with_individual_dependencies(class_code, method, all_methods, extracted_methods)
+    chunked_code = {method: get_function_with_individual_dependencies(class_code, method, all_methods, extracted_methods)
             for method in public_methods}
+
+    return filter_chunks(chunked_code)

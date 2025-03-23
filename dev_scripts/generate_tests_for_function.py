@@ -1,11 +1,11 @@
+import json
 from datetime import datetime
-
 from punito import generate_tests_for_function, generate_plan_for_function, generate_review_for_function, generate_refined_tests
 from punito.utils import read_file, extract_class_name, find_project_root
 from punito.utils import write_to_file
 from punito.processing import get_chunked_code
 from pathlib import Path
-import json
+from utils import save_chunks
 
 def main() -> None:
     """
@@ -42,6 +42,8 @@ def main() -> None:
     example_code = read_file(example_path)
 
     chunked_code = get_chunked_code(class_code)
+
+    save_chunks(json.dumps(chunked_code), Path(__file__).parent / "debug" / "get_chunked_code" / "chunked_code.txt")
 
     function_code = chunked_code[execution_function_name][tested_function_name]
 
