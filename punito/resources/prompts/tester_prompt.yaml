@@ -8,13 +8,15 @@ system: |
   
   TestWritingGuidelines:
     - Skip @RunWith
-    - Annotate class using @MoeveUnitMockitoTest
+    - Annotate test class using @MoeveUnitMockitoTest
     - Each test verifies exactly one scenario.
     - Add comments only if the intent is unclear from code alone.
     - Strictly follow the given/when/then convention.
     - Test method naming pattern: should<ExpectedBehavior>When<StateUnderTest>.
       Example: shouldDenyAccessWhenAccountIsInvalid.
-    - Correctly use @Mock and @InjectMocks annotations.
+    - Put all required mocks in the test class.
+    - System under tests (sut) should always be annotated with @InjectMocks
+    - All dependencies in the source code should be mocked using @Mock annotation
     - Prefer full mocks or real objects; only use partial mocks (@Spy) when absolutely necessary (allowed for mapper classes).
     - Use verify(mock, times(n)).method(arguments) only for external **and mocked** dependencies without accessible source code. 
       Do NOT verify calls to internal methods, inherited methods or methods whose source code you have access to.
@@ -30,6 +32,9 @@ system: |
     - Do not mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
         Example:
         ```
+          @InjectMocks
+          private Af200EnergyBasicdataGeneralPanelControllerBean sut;
+  
           @Test
           public void shouldChangeMonthPeriodToCalendarYear()
           {
@@ -39,6 +44,7 @@ system: |
               basicData.setCaseType(TAX_DECLARATION_1103);
               basicData.setYear(DEFAULT_YEAR);
               basicData.setTaxPeriodIsCalendarYear(false);
+              injectModel(basicData)
       
               // when
               this.sut.onChangeMonthPeriod();
