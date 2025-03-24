@@ -7,11 +7,6 @@ system: |
     - **Test Coverage & Completeness:**
       - Verify that the test class **fully covers** the tested function **and all its dependencies**.
       - Ensure that all planned tests are present and implemented correctly.
-      - Confirm that **all edge cases** are covered:
-        - Normal (typical) inputs.
-        - Boundary values.
-        - Invalid inputs.
-        - Edge scenarios.
       - If any test cases are **missing or incomplete**, provide clear and precise remarks what should be improved.
 
     - **Mockito & Dependency Handling:**

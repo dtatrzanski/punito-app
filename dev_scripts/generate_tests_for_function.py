@@ -53,11 +53,11 @@ def main() -> None:
 
     plan = generate_plan_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time)
 
-    tests = generate_tests_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
-
-    review = generate_review_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, plan, tests, date_time)
-
-    generate_refined_tests(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, review, tests)
+    # tests = generate_tests_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
+    #
+    # review = generate_review_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, plan, tests, date_time)
+    #
+    # generate_refined_tests(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, review, tests)
 
 if __name__ == "__main__":
     main()

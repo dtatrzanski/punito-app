@@ -1,9 +1,10 @@
+import javalang
+import json
 from loguru import logger
 from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml, \
     read_file, save_json_to_txt
 from ..llm_client.streaming_client import stream_chat_completion
-import javalang
-import json
+from pathlib import Path
 
 def get_common_path(class_name: str, exe_fn_name: str, date_time: str):
     return (find_project_root() / 'generated_tests' / get_package_version()
@@ -146,12 +147,13 @@ def generate_tests_for_class(class_path: str) -> None:
      -------
      None
      """
-
-    class_name = extract_class_name(class_path)
+    path = Path(class_path)
+    class_name = extract_class_name(path)
     logger.info(f"Generating tests for class: {class_name}")
+
     # Parse the Java code
-    class_code = read_file(class_path)
+    class_code = read_file(path)
     tree = javalang.parse.parse(class_code)
 
     # TODO: Implement the orchestration logic for test generation
-    # generate_tests_for_function(read_class_file(class_path), extract_class_name(class_path), "function1")
+
