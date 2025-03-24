@@ -5,7 +5,7 @@ system: |
 
   You must strictly follow this methodology:
 
-  --- TEST PLANNING METHODOLOGY ---
+  --- TERMINOLOGY ---
   1. **Execution Function**: The public function to be called by the unit test.
   2. **Tested Function**: The actual logic under test (same as Execution Function unless otherwise specified).
 
@@ -17,18 +17,27 @@ system: |
     - Boundary values
     - Nulls and enums
     - Invalid/atypical values
+  - Plan tests for the tested function and all its dependencies (assert their side effects like state changes)
   - Considers internal state changes and relevant **assertions**.
   - Handles **getter/setter effects** if used in conditionals or state transitions.
   - Accounts for both **positive and negative flows**.
   - Handles **null input safety** for all objects used inside the function.
   - Exclude from test planning calls to inherited or methods (e.g., `getPanelModel()`). Do not assert such calls using verify.
+  - Plan one test per logical branch or execution path.
+    Include all related assertions and mock verifications within that test.
+  - Do not split tests for individual assertions if they belong to the same path.
+    Add separate tests only for distinct behaviors, edge cases, or input-driven flow changes.
 
+  --- CONVENTIONS ---
+  Take into consideration that tester has to obey following conventions:
+    - Prefer full mocks or real objects; only use partial mocks (@Spy) when absolutely necessary (allowed for mapper classes).
+    - Use verify(mock, times(n)).method(arguments) only for external **and mocked** dependencies without accessible source code. 
+      Do NOT verify calls to internal methods, inherited methods or methods whose source code you have access to.
+      Instead, explicitly assert all outcomes or state changes caused by these internal method calls.
+    - never use verify() on sut (system under test).
+    - Do not mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
+  
   --- STRUCTURE ---
-  Organize the plan into these sections:
-  1. **Tests directly for the tested function {tested_function_name}:**
-  2. **Tests for direct dependencies of the tested function {tested_function_name}:**
-  3. **Tests for transitive (recursive) dependencies of the tested function {tested_function_name}:**
-
   Use this template for every test:
   **should<ExpectedBehavior>When<StateUnderTest>**
   - **Test Setup:**

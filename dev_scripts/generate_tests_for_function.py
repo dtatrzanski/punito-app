@@ -35,8 +35,8 @@ def main() -> None:
 
     example_path = find_project_root() / "punito" / "resources" / "test_examples" / "PanelControllerExampleMockitoTest.java"
 
-    execution_function_name = "onChangeOfTaxDeclarationImmediately"
-    tested_function_name = "onChangeOfTaxDeclarationImmediately"
+    execution_function_name = "initializePanel"
+    tested_function_name = "hideElementsfrom119to137"
 
     class_code = read_file(class_path)
     example_code = read_file(example_path)
@@ -53,8 +53,8 @@ def main() -> None:
 
     plan = generate_plan_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time)
 
-    # tests = generate_tests_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
-    #
+    #tests = generate_tests_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
+
     # review = generate_review_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, plan, tests, date_time)
     #
     # generate_refined_tests(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, review, tests)
