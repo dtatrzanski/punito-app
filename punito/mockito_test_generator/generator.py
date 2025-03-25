@@ -85,7 +85,7 @@ def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name
 
     return tests
 
-def generate_review_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, plan: str, test_code: str, date_time: str) -> str:
+def generate_review_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, test_code: str, date_time: str) -> str:
     logger.info(f"Generating review for tests of function {tst_fn_name}, triggered by executing {exe_fn_name}")
 
     common_path = get_common_path(class_name, exe_fn_name, date_time)
@@ -97,7 +97,6 @@ def generate_review_for_function(function_code: str, class_name: str, exe_fn_nam
         "tested_function_name": exe_fn_name,
         "execution_function_name": tst_fn_name,
         "source_code": function_code,
-        "tests_plan": plan,
         "generated_test_code": test_code
     }
 

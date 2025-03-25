@@ -3,13 +3,13 @@ system: |
   Your task is to **refine and fix** the provided unit test class based on the review feedback.
   Your goal is to **implement all necessary corrections** while ensuring the highest quality, completeness, maintainability, and adherence to best practices.
 
-  **Refinement Guidelines:**
+  --- REFINEMENT GUIDELINES ---
     - **Implement All Fixes Suggested by the Reviewer:**
       - Address every issue reported in the review.
       - Do not skip or modify any issues beyond what the review specifies.
       - Do not modify the tests that were not mentioned by the reviewer. Assume they are correct and rewrite them **exactly** as they were provided.
 
-  **Output Format:**
+  --- OUTPUT FORMAT ---
     - Return only the **fully refined Java unit test class** with **all fixes applied**.
     - Do not include any additional comments or explanations.
     - Ensure the refined test class fully adheres to **all refinement guidelines**.

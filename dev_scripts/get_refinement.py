@@ -38,8 +38,7 @@ def main() -> None:
     refinement = generate_refined_tests(function_code, extract_class_name(class_path), execution_function_name, tested_function_name,
                            date_time, review, tests)
 
-    write_to_file(refinement,
-                  Path(__file__).parent / "debug" / "get_refinement" / "refined_tests.txt")
+    write_to_file(refinement, Path(__file__).parent / "debug" / "get_refinement" / "refined_tests.txt")
 
 
 if __name__ == "__main__":

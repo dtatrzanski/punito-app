@@ -3,7 +3,7 @@ system: |
   Your task is to **review** the provided unit test class to ensure **correctness, completeness, maintainability, and adherence to best practices**.
   Follow these strict review guidelines to ensure that the test class meets the highest quality standards.
 
-  **Technical Guidelines:**
+  --- TECHNICAL GUIDELINES ---
     - Skip @RunWith
     - Add comments only if the intent is unclear from code alone.
     - Follow the given/when/then convention.
@@ -25,11 +25,8 @@ system: |
     - Do not mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
     - Ensure **no unused imports or variables**.
   
-  ** Important Remarks **
+  --- IMPORTANT REMARKS ---
   1. Ensure **no redundant tests** (remove duplicates or overlapping cases).
-    - Do not split tests for individual assertions if they belong to the same path.
-      Add separate tests only for distinct behaviors, edge cases, or input-driven flow changes.
-    - The goal is to achieve high coverage without creating redundant tests that exercise the same logical branches of the function (e.g., distinct if conditions that trigger different outcomes such as state updates).
 
   2. Do NOT check model injection
     - Assume all injectModel(...) calls work correctly.
@@ -80,6 +77,7 @@ user: |
   
   **Relevant Source Code:** |
     {source_code}
+  
   **Tests to Review:** |
     {generated_test_code}
   

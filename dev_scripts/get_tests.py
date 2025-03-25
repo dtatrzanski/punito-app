@@ -17,8 +17,8 @@ def main() -> None:
 
     example_path = find_project_root() / "punito" / "resources" / "test_examples" / "PanelControllerExampleMockitoTest.java"
 
-    execution_function_name = "initializePanel"
-    tested_function_name = "hideElementsfrom119to137"
+    execution_function_name = "onChangeOfTaxDeclarationImmediately"
+    tested_function_name = "onChangeOfTaxDeclarationImmediately"
 
     class_code = read_file(class_path)
     example_code = read_file(example_path)
@@ -33,15 +33,14 @@ def main() -> None:
 
     date_time = datetime.now().isoformat().replace(":", "-")
 
-    common_path = find_project_root() / 'generated_tests' / '0.1.0' / '2025-03-25T08-27-32.827598' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'initializePanel' / 'hideElementsfrom119to137'
-    plan_path = common_path / 'plan_hideElementsfrom119to137.txt'
+    common_path = find_project_root() / 'generated_tests' / '0.1.0' / '2025-03-25T13-50-07.091512' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / execution_function_name / tested_function_name
+    plan_path = common_path / f"plan_{tested_function_name}.txt"
 
     plan = read_file(plan_path)
 
     tests = generate_tests_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
 
-    write_to_file(tests,
-                  Path(__file__).parent / "debug" / "get_tests" / "tests.txt")
+    write_to_file(tests, Path(__file__).parent / "debug" / "get_tests" / "tests.txt")
 
 if __name__ == "__main__":
     main()

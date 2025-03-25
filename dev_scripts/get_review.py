@@ -31,15 +31,13 @@ def main() -> None:
     date_time = datetime.now().isoformat().replace(":", "-")
 
     common_path = find_project_root() / 'generated_tests' / '0.1.0'
-    plan_path = common_path / '2025-03-25T10-59-57.778277' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'onChangeOfTaxDeclarationImmediately' / 'onChangeOfTaxDeclarationImmediately' / 'plan_onChangeOfTaxDeclarationImmediately.txt'
-    tests_path = common_path / '2025-03-25T10-59-57.778277' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'onChangeOfTaxDeclarationImmediately' / 'onChangeOfTaxDeclarationImmediately' / 'initial_onChangeOfTaxDeclarationImmediately.java'
 
-    plan = read_file(plan_path)
+    tests_path = common_path / '2025-03-25T14-10-18.655869' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / execution_function_name / tested_function_name / f"initial_{tested_function_name}.java"
 
     tests = read_file(tests_path)
 
     review = generate_review_for_function(function_code, extract_class_name(class_path), execution_function_name,
-                                          tested_function_name, plan, tests, date_time)
+                                          tested_function_name, tests, date_time)
     write_to_file(review, Path(__file__).parent / "debug" / "get_review" / "review.txt")
 
 if __name__ == "__main__":

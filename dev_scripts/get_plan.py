@@ -35,8 +35,8 @@ def main() -> None:
 
     example_path = find_project_root() / "punito" / "resources" / "test_examples" / "PanelControllerExampleMockitoTest.java"
 
-    execution_function_name = "initializePanel"
-    tested_function_name = "hideElementsfrom119to137"
+    execution_function_name = "onChangeOfTaxDeclarationImmediately"
+    tested_function_name = "onChangeOfTaxDeclarationImmediately"
 
     class_code = read_file(class_path)
     example_code = read_file(example_path)
