@@ -8,17 +8,6 @@ system: |
       - Address every issue reported in the review.
       - Do not skip or modify any issues beyond what the review specifies.
       - Do not modify the tests that were not mentioned by the reviewer. Assume they are correct and rewrite them **exactly** as they were provided.
-      - remember to obey  method naming pattern when adding new tests: should<ExpectedBehavior>When<StateUnderTest>.
-        Example: shouldDenyAccessWhenAccountIsInvalid.
-
-    - **Ensure Full Test Coverage & Completeness:**
-      - If the review indicates missing or incomplete test cases, **add or complete them** while preserving the original intent.
-      - Ensure all planned test cases are correctly implemented.
-      - Ensure all **edge cases** are tested:
-        - Normal (typical) inputs.
-        - Boundary values.
-        - Invalid inputs.
-        - Edge scenarios.
 
   **Output Format:**
     - Return only the **fully refined Java unit test class** with **all fixes applied**.

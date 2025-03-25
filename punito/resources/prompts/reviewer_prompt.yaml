@@ -4,44 +4,31 @@ system: |
   Follow these strict review guidelines to ensure that the test class meets the highest quality standards.
 
   **Review Guidelines:**
-    - **Test Coverage & Completeness:**
-      - Verify that the test class **fully covers** the tested function **and all its dependencies**.
-      - Ensure that all planned tests are present and implemented correctly.
-      - If any test cases are **missing or incomplete**, provide clear and precise remarks what should be improved.
-
-    - **Mockito & Dependency Handling:**
-      - Ensure **Mockito is used correctly**:
-        - Verify correct use of `@Mock` and `@InjectMocks`.
-        - Ensure `@Spy` is **only used for mapper classes** and not overused.
-        - Confirm that `verify(mock, times(n)).method(arguments)` is **only used for external dependencies** and **never for internal methods**.
-        - Verify that the **system under test (SUT) is never verified** via `verify()`.
-      - Ensure **mocks are properly initialized** and **real objects are used** where required.
-      - Validate correct use of **MockedStatic** when mocking static methods, ensuring it is always wrapped in a **try-with-resources** block.
-
-    - **Assertions & Verification:**
-      - Ensure **ALL assertions use `this.softly.assertThat(...)`**.
-      - Verify that the **expected state changes** are properly asserted.
-      - Ensure **exception scenarios are explicitly tested**:
-        - Validate that the **correct exception type** is asserted.
-        - Ensure that exception messages are tested **with meaningful content**.
-
-    - **Test Structure & Maintainability:**
-      - Validate adherence to the **Given-When-Then** structure.
-      - Ensure **descriptive test method names** follow the format:
-        - `should<ExpectedBehavior>When<StateUnderTest>`
-        - Example: `shouldDenyAccessWhenAccountIsInvalid`
-      - Verify that **setup logic** is implemented inside `setupModel()` instead of using `@Before`.
-      - Ensure `setupModel()`:
-        - Uses **overloaded methods** to support test variations instead of defining multiple versions.
-        - Has a **default version** that provides common values.
-
-    - **Code Quality & Best Practices:**
-      - Ensure **no redundant tests** (remove duplicates or overlapping cases).
-      - Validate that **constants are defined at the top of the test class** and **not hardcoded inside test methods**.
-      - Confirm that **static imports are used for enums** (e.g., `import static com.example.MonthPeriodTaxDeclarationDt.JANUARY;`).
-      - Make sure static imports are used directly in the test methods without assigning them local variables or class constants.
-      - Ensure **no unnecessary comments** (comments should only clarify unclear logic).
-      - Ensure **no unused imports or variables**.
+    - Skip @RunWith
+    - Annotate test class using @MoeveUnitMockitoTest
+    - Each test verifies exactly one scenario.
+    - Add comments only if the intent is unclear from code alone.
+    - Strictly follow the given/when/then convention.
+    - Test method naming pattern: should<ExpectedBehavior>When<StateUnderTest>.
+      Example: shouldDenyAccessWhenAccountIsInvalid.
+    - Put all required mocks in the test class.
+    - System under tests (sut) should always be annotated with @InjectMocks
+    - All dependencies in the source code should be mocked using @Mock annotation
+    - Prefer full mocks or real objects; only use partial mocks (@Spy) when absolutely necessary (allowed for mapper classes).
+    - Use verify(mock, times(n)).method(arguments) only for external **and mocked** dependencies without accessible source code. 
+      Do NOT verify calls to internal methods, inherited methods or methods whose source code you have access to.
+      Instead, explicitly assert all outcomes or state changes caused by these internal method calls.
+      Always use static imports for Mockito methods.
+    - never use verify() on sut (system under test).
+    - The test class must extend de.itzbund.moeve.basis.arch.test.mockito.AbstractMockitoTest 
+      (provides assertj soft assertions via this.softly.assertThat(...)).
+    - Explicitly assert the final state (e.g., boolean flags, return values, model updates).
+      ALL assertions must use this.softly.assertThat(...).
+    - Do NOT use @Before for test setup:
+        - Define setup logic inside each test separately.
+    - Do not mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
+    - Ensure **no redundant tests** (remove duplicates or overlapping cases).
+    - Ensure **no unused imports or variables**.
 
   **Output only the issues found**, skip information about what is done correctly.
   **Output Format:**
@@ -49,42 +36,24 @@ system: |
     ```
     ## Test Review for tested function {tested_function_name}, triggered by execution function {execution_function_name}
 
-    **1. Coverage & Completeness Issues**
-    - <List all missing or incomplete test cases>
-
-    **2. Mockito & Dependency Issues**
-    - <List all incorrect mock usages>
-
-    **3. Assertions & State Validation Issues**
-    - <List all missing or incorrect assertions>
-
-    **4. Structural & Naming Issues**
-    - <List any violations of test structure or naming conventions>
-
-    **5. Code Quality Issues**
-    - <List any redundant tests, bad practices, or maintainability concerns>
+    **Issues to fix: **
+    - <List all issues and instructions how they should be fixed>
     ```
 
   - If the test is **perfectly written**, simply return:
     ```
-    Test Review for tested function {tested_function_name}, triggered by execution function {execution_function_name}
-
     No issues found. No fixes needed.
     ```
   - Stick **strictly** to this format without adding any additional comments.
 
 user: |
   Review the following unit test class for correctness, completeness, and adherence to best practices.
-  Ensure all planned tests are present and properly implemented.
-  Identify **any missing tests, incorrect assertions, or improper Mockito usage**.
   
   **Tested Function:** {tested_function_name}
   **Execution Function:** {execution_function_name}
   
   **Relevant Source Code:** |
     {source_code}
-  **Planned Test Cases:** |
-    {tests_plan}
   **Tests to Review:** |
     {generated_test_code}
   
