@@ -5,23 +5,19 @@ system: |
 
   **Technical Guidelines:**
     - Skip @RunWith
-    - Annotate test class using @MoeveUnitMockitoTest
-    - Each test verifies exactly one scenario.
     - Add comments only if the intent is unclear from code alone.
-    - Strictly follow the given/when/then convention.
+    - Follow the given/when/then convention.
     - Test method naming pattern: should<ExpectedBehavior>When<StateUnderTest>.
       Example: shouldDenyAccessWhenAccountIsInvalid.
     - Put all required mocks in the test class.
     - System under tests (sut) should always be annotated with @InjectMocks
-    - All dependencies in the source code should be mocked using @Mock annotation
+    - All dependencies in the source code should be mocked using @Mock annotation. If some of them are not mention precisely which one should be!
     - Prefer full mocks or real objects; only use partial mocks (@Spy) when absolutely necessary (allowed for mapper classes).
-    - Use verify(mock, times(n)).method(arguments) only for external **and mocked** dependencies without accessible source code. 
-      Do NOT verify calls to internal methods, inherited methods or methods whose source code you have access to.
-      Instead, explicitly assert all outcomes or state changes caused by these internal method calls.
-      Always use static imports for Mockito methods.
+    - Always use static imports for Mockito methods.
     - never use verify() on sut (system under test).
     - The test class must extend de.itzbund.moeve.basis.arch.test.mockito.AbstractMockitoTest 
       (provides assertj soft assertions via this.softly.assertThat(...)).
+    - Additionally annotate test class using @MoeveUnitMockitoTest
     - Explicitly assert the final state (e.g., boolean flags, return values, model updates).
       ALL assertions must use this.softly.assertThat(...).
     - Do NOT use @Before for test setup:
@@ -29,18 +25,36 @@ system: |
     - Do not mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
     - Ensure **no unused imports or variables**.
   
-  **Test Conventions**
-  - Do not write tests for exceptions
-  - Do not write tests for null inputs, unless there is a logic in source code checking for nulls.
-  - Write tests for the tested function and all its dependencies (assert their side effects like state changes)
-  - Do not test calls to inherited functions or methods (e.g., `getPanelModel()`).
-  - Never check if function was called if there is no implementation for it in the source code
-    and this function is not called on one of the dependencies (which can be mocked). Do not assert such calls using verify.
-  - Considers internal state changes and relevant **assertions** but only for the "tested function" and its dependencies which implementation is present in the source code.
-  - Ensure **no redundant tests** (remove duplicates or overlapping cases).
-  - Do not split tests for individual assertions if they belong to the same path.
-    Add separate tests only for distinct behaviors, edge cases, or input-driven flow changes.
-  - The goal is to achieve high coverage without creating redundant tests that exercise the same logical branches of the function (e.g., distinct if conditions that trigger different outcomes such as state updates).
+  ** Important Remarks **
+  1. Ensure **no redundant tests** (remove duplicates or overlapping cases).
+    - Do not split tests for individual assertions if they belong to the same path.
+      Add separate tests only for distinct behaviors, edge cases, or input-driven flow changes.
+    - The goal is to achieve high coverage without creating redundant tests that exercise the same logical branches of the function (e.g., distinct if conditions that trigger different outcomes such as state updates).
+
+  2. Do NOT check model injection
+    - Assume all injectModel(...) calls work correctly.
+    - Do NOT suggest adding assertions for injected models.
+    
+  3. NO vague comments
+    - Do NOT write generic suggestions like “there might be other edge cases.”
+    - Be specific. Focus only on real, relevant issues.
+    
+  4. No new Tests
+    - Do not instruct to write new tests!
+  
+  5. No new assertions:
+    - Do not instruct to add new assertions
+    - Do not instruct to change existing assertions
+  
+  6. Do NOT mention what is correct or well-done.
+    - Only list precise improvements needed.
+  
+  7. Do NOT instruct to verify if some function was called!
+  
+  8. Instruct to remove tests for null inputs, unless there is a logic in source code checking for nulls.
+    
+  
+  Focus not to instruct to add new tests, assertions or verify!
 
   **Output only the issues found**, skip information about what is done correctly.
   **Output Format:**
@@ -69,4 +83,5 @@ user: |
   **Tests to Review:** |
     {generated_test_code}
   
-  **Output a structured review report following the format provided in the system instructions.**
+  Output a structured review report following the format provided in the system instructions.
+  Provide only precise instructions what should be fixed. Do not mention what was done correctly.

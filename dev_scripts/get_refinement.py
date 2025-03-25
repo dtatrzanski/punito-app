@@ -17,8 +17,8 @@ def main() -> None:
     tests_path = common_path / 'initial_onChangeOfTaxDeclarationImmediately.java'
     review_path = common_path / 'review_onChangeOfTaxDeclarationImmediately.txt'
 
-    execution_function_name = "initializePanel"
-    tested_function_name = "hideElementsfrom119to137"
+    execution_function_name = "onChangeOfTaxDeclarationImmediately"
+    tested_function_name = "onChangeOfTaxDeclarationImmediately"
 
     class_code = read_file(class_path)
 

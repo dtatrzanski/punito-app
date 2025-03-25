@@ -15,8 +15,8 @@ def main() -> None:
         r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
     )
 
-    execution_function_name = "initializePanel"
-    tested_function_name = "hideElementsfrom119to137"
+    execution_function_name = "onChangeOfTaxDeclarationImmediately"
+    tested_function_name = "onChangeOfTaxDeclarationImmediately"
 
     class_code = read_file(class_path)
 
@@ -31,8 +31,8 @@ def main() -> None:
     date_time = datetime.now().isoformat().replace(":", "-")
 
     common_path = find_project_root() / 'generated_tests' / '0.1.0'
-    plan_path = common_path / '2025-03-25T08-27-32.827598' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'initializePanel' / 'hideElementsfrom119to137' / 'plan_hideElementsfrom119to137.txt'
-    tests_path = common_path / '2025-03-25T08-37-02.791307' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'initializePanel' / 'hideElementsfrom119to137' / 'initial_hideElementsfrom119to137.java'
+    plan_path = common_path / '2025-03-25T10-59-57.778277' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'onChangeOfTaxDeclarationImmediately' / 'onChangeOfTaxDeclarationImmediately' / 'plan_onChangeOfTaxDeclarationImmediately.txt'
+    tests_path = common_path / '2025-03-25T10-59-57.778277' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'onChangeOfTaxDeclarationImmediately' / 'onChangeOfTaxDeclarationImmediately' / 'initial_onChangeOfTaxDeclarationImmediately.java'
 
     plan = read_file(plan_path)
 
