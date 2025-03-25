@@ -117,7 +117,6 @@ def generate_refined_tests(function_code: str, class_name: str, exe_fn_name: str
     placeholders = {
         "execution_function_name": exe_fn_name,
         "tested_function_name": tst_fn_name,
-        "source_code": function_code,
         "generated_test_code": tests,
         "review_report": review_report
     }
