@@ -13,12 +13,12 @@ def main() -> None:
         r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
     )
 
-    common_path = find_project_root() / 'generated_tests' / '0.1.0' / '2025-03-24T19-00-03.840513' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'onChangeOfTaxDeclarationImmediately' / 'onChangeOfTaxDeclarationImmediately'
+    common_path = find_project_root() / 'generated_tests' / '0.1.0' / '2025-03-25T08-37-02.791307' / 'Af200EnergyBasicdataGeneralPanelControllerBean' / 'tests_per_public_function' / 'initializePanel' / 'hideElementsfrom119to137'
     tests_path = common_path / 'initial_onChangeOfTaxDeclarationImmediately.java'
     review_path = common_path / 'review_onChangeOfTaxDeclarationImmediately.txt'
 
-    execution_function_name = "onChangeOfTaxDeclarationImmediately"
-    tested_function_name = "onChangeOfTaxDeclarationImmediately"
+    execution_function_name = "initializePanel"
+    tested_function_name = "hideElementsfrom119to137"
 
     class_code = read_file(class_path)
 

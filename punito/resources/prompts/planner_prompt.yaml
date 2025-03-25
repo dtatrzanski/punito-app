@@ -34,7 +34,6 @@ system: |
   - Plan tests for the tested function and all its dependencies (assert their side effects like state changes)
   - Considers internal state changes and relevant **assertions**.
   - Handles **getter/setter effects** if used in conditionals or state transitions.
-  - Accounts for both **positive and negative flows**.
   - Handles **null input safety** for all objects used inside the function.
   - Exclude from test planning calls to inherited or methods (e.g., `getPanelModel()`). Do not assert such calls using verify.
   - Never plan to check if function was called if there is no implementation for it in the source code

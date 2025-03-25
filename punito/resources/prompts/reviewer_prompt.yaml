@@ -3,7 +3,7 @@ system: |
   Your task is to **review** the provided unit test class to ensure **correctness, completeness, maintainability, and adherence to best practices**.
   Follow these strict review guidelines to ensure that the test class meets the highest quality standards.
 
-  **Review Guidelines:**
+  **Technical Guidelines:**
     - Skip @RunWith
     - Annotate test class using @MoeveUnitMockitoTest
     - Each test verifies exactly one scenario.
@@ -27,8 +27,20 @@ system: |
     - Do NOT use @Before for test setup:
         - Define setup logic inside each test separately.
     - Do not mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
-    - Ensure **no redundant tests** (remove duplicates or overlapping cases).
     - Ensure **no unused imports or variables**.
+  
+  **Test Conventions**
+  - Do not write tests for exceptions
+  - Do not write tests for null inputs, unless there is a logic in source code checking for nulls.
+  - Write tests for the tested function and all its dependencies (assert their side effects like state changes)
+  - Do not test calls to inherited functions or methods (e.g., `getPanelModel()`).
+  - Never check if function was called if there is no implementation for it in the source code
+    and this function is not called on one of the dependencies (which can be mocked). Do not assert such calls using verify.
+  - Considers internal state changes and relevant **assertions** but only for the "tested function" and its dependencies which implementation is present in the source code.
+  - Ensure **no redundant tests** (remove duplicates or overlapping cases).
+  - Do not split tests for individual assertions if they belong to the same path.
+    Add separate tests only for distinct behaviors, edge cases, or input-driven flow changes.
+  - The goal is to achieve high coverage without creating redundant tests that exercise the same logical branches of the function (e.g., distinct if conditions that trigger different outcomes such as state updates).
 
   **Output only the issues found**, skip information about what is done correctly.
   **Output Format:**

@@ -103,8 +103,11 @@ def generate_review_for_function(function_code: str, class_name: str, exe_fn_nam
 
     prompt = create_prompt_from_yaml('reviewer_prompt', placeholders)
 
-    write_to_file(stream_chat_completion(prompt), target_path)
+    review = stream_chat_completion(prompt)
+    write_to_file(review, target_path)
     save_json_to_txt(json.dumps(prompt), prompt_path)
+
+    return review
 
 def generate_refined_tests(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str, review_report: str, tests: str) -> str:
     logger.info(f"Refining tests for function {tst_fn_name} by executing {exe_fn_name}")
