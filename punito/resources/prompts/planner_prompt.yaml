@@ -43,6 +43,7 @@ system: |
     Include all related assertions and mock verifications within that test.
   - Do not split tests for individual assertions if they belong to the same path.
     Add separate tests only for distinct behaviors, edge cases, or input-driven flow changes.
+  - The goal is to achieve high coverage without creating redundant tests that exercise the same logical branches of the function (e.g., distinct if conditions that trigger different outcomes such as state updates).
   Example:
   For code like this:
   ```
