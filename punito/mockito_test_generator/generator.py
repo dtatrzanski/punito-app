@@ -131,6 +131,7 @@ def generate_refined_tests(function_code: str, class_name: str, exe_fn_name: str
 
     return refined_tests
 
+
 def generate_tests_for_class(class_path: str) -> None:
     """
      Orchestrates the test generation process for a given Java class.
