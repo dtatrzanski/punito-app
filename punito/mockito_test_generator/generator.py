@@ -1,194 +1,124 @@
 import javalang
-import json
-from loguru import logger
-from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml, \
-    read_file, save_json_to_txt
-from ..chat_model import create_llama_model_from_config, LlamaChatModel
-from dynaconf import Dynaconf
 from pathlib import Path
+from loguru import logger
 from langchain_core.messages import get_buffer_string
 
-def get_common_path(class_name: str, exe_fn_name: str, date_time: str):
-    return (find_project_root() / 'generated_tests' / get_package_version()
-                   / date_time
-                   / class_name / 'tests_per_public_function' / f"{exe_fn_name}")
+from ..utils import (
+    find_project_root,
+    write_to_file,
+    extract_class_name,
+    get_package_version,
+    create_messages_from_yaml,
+    read_file,
+)
+from ..chat_model import create_llama_model_from_config
 
-def generate_plan_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str) -> str:
-    logger.info(f"Generating plan for testing function {tst_fn_name} by executing {exe_fn_name}")
+class TestsGenerator:
+    def __init__(self, class_name: str, date_time: str):
+        self.class_name = class_name
+        self.date_time = date_time
+        self.base_output_path = (
+            find_project_root()
+            / 'generated_tests'
+            / get_package_version()
+            / date_time
+            / class_name
+            / 'tests_per_public_function'
+        )
+        self.llm = create_llama_model_from_config(True)
 
-    common_path = get_common_path(class_name, exe_fn_name, date_time)
+    def _get_common_path(self, exe_fn_name: str) -> Path:
+        return self.base_output_path / exe_fn_name
 
-    placeholders = {
-        "execution_function_name": exe_fn_name,
-        "tested_function_name": tst_fn_name,
-        "source_code": function_code,
-    }
+    def _generate(self, exe_fn_name: str, tst_fn_name: str, prompt_name: str, placeholders: dict, filename: str) -> str:
+        logger.info(f"{prompt_name} for {tst_fn_name} using {exe_fn_name}")
+        common_path = self._get_common_path(exe_fn_name)
+        target_path = common_path / tst_fn_name / filename
+        prompt_path = common_path / tst_fn_name / "prompts" / f"{prompt_name}_{tst_fn_name}.txt"
 
-    messages = create_prompt_from_yaml('planner_prompt', placeholders)
+        messages = create_messages_from_yaml(prompt_name, placeholders)
 
-    target_path = common_path / tst_fn_name / f"plan_{tst_fn_name}.txt"
-    prompt_path = common_path / tst_fn_name / "prompts" / f"planner_prompt_{tst_fn_name}.txt"
+        output = ""
+        for chunk in self.llm.stream(messages):
+            token = chunk.content
+            print(token, end="", flush=True)
+            output += token
 
-    llm = create_llama_model_from_config(True)
+        write_to_file(output, target_path)
+        write_to_file(get_buffer_string(messages), prompt_path)
 
-    plan = ""
-    for chunk in llm.stream(messages):
-        token = chunk.content
-        print(token, end="", flush=True)
-        plan += token
+        return output
 
-    write_to_file(plan, target_path)
+    def generate_plan(self, function_code: str, exe_fn_name: str, tst_fn_name: str) -> str:
+        placeholders = {
+            "execution_function_name": exe_fn_name,
+            "tested_function_name": tst_fn_name,
+            "source_code": function_code,
+        }
+        return self._generate(exe_fn_name, tst_fn_name, 'planner_prompt', placeholders, f"plan_{tst_fn_name}.txt")
 
-    write_to_file(get_buffer_string(messages), prompt_path)
+    def generate_tests(self, function_code: str, exe_fn_name: str, tst_fn_name: str,
+                       tests_plan: str, example_code: str = '') -> str:
+        placeholders = {
+            "execution_function_name": exe_fn_name,
+            "tested_function_name": tst_fn_name,
+            "source_code": function_code,
+            "test_example": example_code,
+            "tests_plan": tests_plan,
+        }
+        return self._generate(exe_fn_name, tst_fn_name, 'tester_prompt', placeholders, f"initial_{tst_fn_name}.java")
 
-    return plan
+    def generate_review(self, function_code: str, exe_fn_name: str, tst_fn_name: str, test_code: str) -> str:
+        placeholders = {
+            "tested_function_name": exe_fn_name,
+            "execution_function_name": tst_fn_name,
+            "source_code": function_code,
+            "generated_test_code": test_code,
+        }
+        return self._generate(exe_fn_name, tst_fn_name, 'reviewer_prompt', placeholders, f"review_{tst_fn_name}.txt")
 
-def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str,
-                                tests_plan: str, example_code='') -> str:
+    def generate_refined_tests(self, exe_fn_name: str, tst_fn_name: str, tests: str, review_report: str) -> str:
+        placeholders = {
+            "execution_function_name": exe_fn_name,
+            "tested_function_name": tst_fn_name,
+            "generated_test_code": tests,
+            "review_report": review_report,
+        }
+        return self._generate(exe_fn_name, tst_fn_name, 'refiner_prompt', placeholders, f"{tst_fn_name}.java")
+
+    def generate_tests_for_function(self, function_code: str, exe_fn_name: str, tst_fn_name: str,
+                                    example_code: str = '') -> str:
+        """
+        Full pipeline for generating refined tests for a single function.
+        1. Generate test plan
+        2. Generate initial tests
+        3. Generate review
+        4. Generate refined tests
+        """
+        plan = self.generate_plan(function_code, exe_fn_name, tst_fn_name)
+        initial_tests = self.generate_tests(function_code, exe_fn_name, tst_fn_name, plan, example_code)
+        review = self.generate_review(function_code, exe_fn_name, tst_fn_name, initial_tests)
+        final_tests = self.generate_refined_tests(exe_fn_name, tst_fn_name, initial_tests, review)
+
+        return final_tests
+
+def generate_tests_for_class(class_path: str, date_time: str) -> None:
     """
-     Generates JUnit Mockito tests for a specified Java function.
+    Orchestrates the test generation process for a given Java class.
 
-     Extracts the given function from the provided Java class code
-     and generates corresponding unit tests using JUnit and Mockito.
-
-     Parameters
-     ----------
-     function_code: str : str
-         Source code of the Java function.
-     class_name : str
-         The name of the class containing the function for which tests will be generated.
-     exe_fn_name : str
-            The name of the public function which will be executed on each test
-     tst_fn_name : str
-            Generated tests will be focused on testing this function. If it is a private function, it will be triggered directly or indirectly from the execution function.
-     date_time : str
-            The date and time when the tests were generated. Should be the same for one chunk.
-     tests_plan : str
-            The plan for tests generation process including test cases and assertions.
-     example_code : str
-         Example test to be used in the test generation process.
-
-     Returns
-     -------
-     None
-     """
-
-    logger.info(f"Generating tests for function {tst_fn_name} by executing {exe_fn_name}")
-
-    common_path = get_common_path(class_name, exe_fn_name, date_time)
-
-    target_path = common_path / tst_fn_name / f"initial_{tst_fn_name}.java"
-    prompt_path = common_path / tst_fn_name / "prompts" / f"tester_prompt_{tst_fn_name}.txt"
-
-    placeholders = {
-        "execution_function_name": exe_fn_name,
-        "tested_function_name": tst_fn_name,
-        "source_code": function_code,
-        "test_example": example_code,
-        "tests_plan": tests_plan
-    }
-
-    messages = create_prompt_from_yaml('tester_prompt', placeholders)
-
-    llm = create_llama_model_from_config(True)
-
-    tests = ""
-    for chunk in llm.stream(messages):
-        token = chunk.content
-        print(token, end="", flush=True)
-        tests += token
-
-    write_to_file(tests, target_path)
-
-    write_to_file(get_buffer_string(messages), prompt_path)
-
-    return tests
-
-def generate_review_for_function(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, test_code: str, date_time: str) -> str:
-    logger.info(f"Generating review for tests of function {tst_fn_name}, triggered by executing {exe_fn_name}")
-
-    common_path = get_common_path(class_name, exe_fn_name, date_time)
-
-    target_path = common_path / tst_fn_name / f"review_{tst_fn_name}.txt"
-    prompt_path = common_path / tst_fn_name / "prompts" / f"reviewer_prompt_{tst_fn_name}.txt"
-
-    placeholders = {
-        "tested_function_name": exe_fn_name,
-        "execution_function_name": tst_fn_name,
-        "source_code": function_code,
-        "generated_test_code": test_code
-    }
-
-    messages = create_prompt_from_yaml('reviewer_prompt', placeholders)
-
-    llm = create_llama_model_from_config(True)
-
-    review = ""
-    for chunk in llm.stream(messages):
-        token = chunk.content
-        print(token, end="", flush=True)
-        review += token
-
-    write_to_file(review, target_path)
-    write_to_file(get_buffer_string(messages), prompt_path)
-
-    return review
-
-def generate_refined_tests(function_code: str, class_name: str, exe_fn_name: str, tst_fn_name: str, date_time: str, review_report: str, tests: str) -> str:
-    logger.info(f"Refining tests for function {tst_fn_name} by executing {exe_fn_name}")
-
-    common_path = get_common_path(class_name, exe_fn_name, date_time)
-
-    target_path = common_path / tst_fn_name / f"{tst_fn_name}.java"
-    prompt_path = common_path / tst_fn_name / "prompts" / f"refiner_prompt_{tst_fn_name}.txt"
-
-    placeholders = {
-        "execution_function_name": exe_fn_name,
-        "tested_function_name": tst_fn_name,
-        "generated_test_code": tests,
-        "review_report": review_report
-    }
-
-    messages = create_prompt_from_yaml('refiner_prompt', placeholders)
-
-    llm = create_llama_model_from_config(True)
-
-    refined_tests = ""
-    for chunk in llm.stream(messages):
-        token = chunk.content
-        print(token, end="", flush=True)
-        refined_tests += token
-
-    write_to_file(refined_tests, target_path)
-    write_to_file(get_buffer_string(messages), prompt_path)
-
-    return refined_tests
-
-
-def generate_tests_for_class(class_path: str) -> None:
+    Parameters
+    ----------
+    class_path : str
+        Path to the Java class file for which tests will be generated.
+    date_time : str
+        Timestamp string for organizing output.
     """
-     Orchestrates the test generation process for a given Java class.
-
-     Automates the selection of functions to test within the specified Java class,
-     generates unit tests for each function, and executes the tests. If errors occur, it reiterates
-     the process to refine test generation.
-
-     Parameters
-     ----------
-     class_path : str
-     Path to the Java class file for which tests will be generated.
-
-     Returns
-     -------
-     None
-     """
     path = Path(class_path)
     class_name = extract_class_name(path)
     logger.info(f"Generating tests for class: {class_name}")
 
-    # Parse the Java code
     class_code = read_file(path)
     tree = javalang.parse.parse(class_code)
 
-    # TODO: Implement the orchestration logic for test generation
-
+    # TODO: Implement orchestration logic for extracting public/private methods
+    # and calling generate_plan, generate_tests, etc., as needed.

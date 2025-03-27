@@ -4,7 +4,7 @@ from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain_core.messages.base import BaseMessage
 
-def create_prompt_from_yaml(file_name: str, placeholders: dict) -> list[BaseMessage]:
+def create_messages_from_yaml(file_name: str, placeholders: dict) -> list[BaseMessage]:
     data = read_yaml(find_resources_path() / 'prompts' / (file_name + '.yaml'))
 
     if "system" not in data or "user" not in data:

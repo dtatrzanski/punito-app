@@ -1,31 +1,22 @@
 import json
 from datetime import datetime
-from punito import generate_tests_for_function, generate_plan_for_function, generate_review_for_function, generate_refined_tests
-from punito.utils import read_file, extract_class_name, find_project_root
-from punito.utils import write_to_file
-from punito.processing import get_chunked_code
 from pathlib import Path
+
+from punito import TestsGenerator  # This should point to the class `TestGenerator`
+from punito.utils import (
+    read_file,
+    extract_class_name,
+    find_project_root,
+    write_to_file,
+)
+from punito.processing import get_chunked_code
 from utils import save_chunks
+
 
 def main() -> None:
     """
-       Development script for testing test generation for a specific function.
-
-       This function sets predefined values for `class_name` and `function_name`
-       and calls `generate_tests_for_function` to generate test cases.
-
-       Returns
-       -------
-       None
-
-       Examples
-       --------
-       Run the script manually during development:
-
-       ```sh
-       python dev_scripts/generate_tests_for_function.py
-       ```
-       """
+    Development script for testing test generation for a specific function.
+    """
 
     class_path = Path(
         r"C:\moeve_IDE\moeve-ide\workspaces\main\moeve-vvst\moeve-enst-dlg\src\main"
@@ -33,7 +24,13 @@ def main() -> None:
         r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
     )
 
-    example_path = find_project_root() / "punito" / "resources" / "test_examples" / "PanelControllerExampleMockitoTest.java"
+    example_path = (
+        find_project_root()
+        / "punito"
+        / "resources"
+        / "test_examples"
+        / "PanelControllerExampleMockitoTest.java"
+    )
 
     execution_function_name = "onChangeTaxPeriodIsCalendarMonthToFalse"
     tested_function_name = "onChangeTaxPeriodIsCalendarMonthToFalse"
@@ -43,21 +40,41 @@ def main() -> None:
 
     chunked_code = get_chunked_code(class_code)
 
-    save_chunks(json.dumps(chunked_code), Path(__file__).parent / "debug" / "get_chunked_code" / "chunked_code.txt")
+    save_chunks(
+        json.dumps(chunked_code),
+        Path(__file__).parent / "debug" / "get_chunked_code" / "chunked_code.txt",
+    )
 
     function_code = chunked_code[execution_function_name][tested_function_name]
 
-    write_to_file(function_code, Path(__file__).parent / "debug" / "generate_tests_for_function" / "extracted_function.txt")
+    write_to_file(
+        function_code,
+        Path(__file__).parent
+        / "debug"
+        / "generate_tests_for_function"
+        / "extracted_function.txt",
+    )
 
     date_time = datetime.now().isoformat().replace(":", "-")
+    class_name = extract_class_name(class_path)
 
-    plan = generate_plan_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time)
+    generator = TestsGenerator(class_name=class_name, date_time=date_time)
 
-    tests = generate_tests_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, plan, example_code)
+    final_tests = generator.generate_tests_for_function(
+        function_code=function_code,
+        exe_fn_name=execution_function_name,
+        tst_fn_name=tested_function_name,
+        example_code=example_code,
+    )
 
-    review = generate_review_for_function(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, tests, date_time)
+    write_to_file(
+        final_tests,
+        Path(__file__).parent
+        / "debug"
+        / "generate_tests_for_function"
+        / f"{tested_function_name}_final.java",
+    )
 
-    generate_refined_tests(function_code, extract_class_name(class_path), execution_function_name, tested_function_name, date_time, review, tests)
 
 if __name__ == "__main__":
     main()
