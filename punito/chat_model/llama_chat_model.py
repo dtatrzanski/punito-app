@@ -5,7 +5,7 @@ from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from dynaconf import Dynaconf
-from punito.utils import find_project_root
+from punito.utils import find_project_root, get_default_settings
 
 import httpx
 import json
@@ -92,7 +92,7 @@ class LlamaChatModel(BaseChatModel):
                     logger.warning(f"Failed to parse stream chunk: {line}")
 
 def create_llama_model_from_config(streaming = False, timeout = None) -> LlamaChatModel:
-    settings = Dynaconf(settings_files=[find_project_root() / "settings.toml"])["DEFAULT"]
+    settings = get_default_settings()
     return LlamaChatModel(
         model_name=settings["MODEL"],
         base_url=settings["BASE_URL"],

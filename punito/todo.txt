@@ -1,0 +1,4 @@
+- Improve planner, tester etc. prompts to dynamically provide example for code and plan.
+- create agent which will go through all class and then send a configuration for further prompts: what examples to use or what prompts/steps
+  in pipeline to call further.
+- Improve PanelControllerExampleMockitoTest.java

@@ -2,3 +2,4 @@
 BASE_URL = "http://bmf-ai.apps.ce.capgemini.com/chat/"
 MODEL = "kaitchup/Llama-3.3-70B-Instruct-AutoRound-GPTQ-4bit"
 ENDPOINT = "/v1/chat/completions"
+ROOT_DIR = "punito_app"

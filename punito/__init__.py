@@ -1,1 +1,1 @@
-from .mockito_test_generator import TestsGenerator
+from .tests_generator import TestsGenerator

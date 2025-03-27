@@ -1,28 +1,29 @@
 import argparse
 from loguru import logger
-from punito.mockito_test_generator import generate_tests_for_class
+from punito.tests_generator import TestsGenerator
+from datetime import datetime
 
 def main() -> None:
     """
-        Entry point for running the test generation script via CLI.
+    Entry point for running the test generation via CLI.
 
-        Parses the command-line arguments,
-        and starts the process of generating JUnit Mockito tests for the specified Java class.
+    Parses the command-line arguments,
+    and starts the process of generating JUnit Mockito tests for the specified Java class.
 
-        It is intended to be used when the module is executed as a script.
+    It is intended to be used when the module is executed as a script.
 
-        Returns
-        -------
-        None
+    Returns
+    -------
+    None
 
-        Examples
-        --------
-        Running the script:
+    Examples
+    --------
+    Running the script:
 
-        ```sh
-        python -m punito path/to/MyClass.java
-        ```
-        """
+    ```sh
+    python -m punito path/to/MyClass.java
+    ```
+    """
 
     logger.info("Starting Punito...")
     parser = argparse.ArgumentParser(description="Generate JUnit Mockito tests using deployed model.")
@@ -31,7 +32,7 @@ def main() -> None:
     class_path = parser.parse_args().class_path
     logger.info(f"Received arguments: class_path={class_path}")
 
-    generate_tests_for_class(class_path)
+    TestsGenerator.generate_tests_for_class(class_path, datetime.now().isoformat().replace(":", "-"))
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from punito import TestsGenerator  # This should point to the class `TestGenerator`
+from punito import TestsGenerator
 from punito.utils import (
     read_file,
     extract_class_name,
@@ -32,8 +32,8 @@ def main() -> None:
         / "PanelControllerExampleMockitoTest.java"
     )
 
-    execution_function_name = "onChangeTaxPeriodIsCalendarMonthToFalse"
-    tested_function_name = "onChangeTaxPeriodIsCalendarMonthToFalse"
+    execution_function_name = "initializePanel"
+    tested_function_name = "hideElementsfrom119to137"
 
     class_code = read_file(class_path)
     example_code = read_file(example_path)

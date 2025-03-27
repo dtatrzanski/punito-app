@@ -8,7 +8,7 @@ from ..utils import (
     write_to_file,
     extract_class_name,
     get_package_version,
-    create_messages_from_yaml,
+    create_messages_from_yaml_template,
     read_file,
 )
 from ..chat_model import create_llama_model_from_config
@@ -36,7 +36,7 @@ class TestsGenerator:
         target_path = common_path / tst_fn_name / filename
         prompt_path = common_path / tst_fn_name / "prompts" / f"{prompt_name}_{tst_fn_name}.txt"
 
-        messages = create_messages_from_yaml(prompt_name, placeholders)
+        messages = create_messages_from_yaml_template(prompt_name, placeholders)
 
         output = ""
         for chunk in self.llm.stream(messages):
@@ -102,23 +102,25 @@ class TestsGenerator:
 
         return final_tests
 
-def generate_tests_for_class(class_path: str, date_time: str) -> None:
-    """
-    Orchestrates the test generation process for a given Java class.
+    def generate_tests_for_class(class_path: str, date_time: str) -> None:
+        """
+        Orchestrates the test generation process for a given Java class.
 
-    Parameters
-    ----------
-    class_path : str
-        Path to the Java class file for which tests will be generated.
-    date_time : str
-        Timestamp string for organizing output.
-    """
-    path = Path(class_path)
-    class_name = extract_class_name(path)
-    logger.info(f"Generating tests for class: {class_name}")
+        Parameters
+        ----------
+        class_path : str
+            Path to the Java class file for which tests will be generated.
+        date_time : str
+            Timestamp string for organizing output.
+        """
+        path = Path(class_path)
+        class_name = extract_class_name(path)
+        logger.info(f"Generating tests for class: {class_name}")
 
-    class_code = read_file(path)
-    tree = javalang.parse.parse(class_code)
+        class_code = read_file(path)
+        tree = javalang.parse.parse(class_code)
 
-    # TODO: Implement orchestration logic for extracting public/private methods
-    # and calling generate_plan, generate_tests, etc., as needed.
+        # TODO: Implement orchestration logic for extracting public/private methods
+        # and calling generate_plan, generate_tests, etc., as needed.
+
+
