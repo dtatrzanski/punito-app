@@ -1,34 +1,21 @@
 from .path_utils import find_resources_path
 from .io_utils import read_yaml
 from loguru import logger
+from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain_core.messages.base import BaseMessage
 
-def create_prompt_from_yaml(file_name: str, placeholders: dict) -> dict:
-    """
-    Reads a JSON template file, replaces placeholders, and returns the formatted JSON.
-
-    Parameters
-    ----------
-    file_name : str
-        Name of the JSON file located in the resources directory.
-    placeholders : dict
-        Dictionary containing placeholder values to replace.
-
-    Returns
-    -------
-    dict
-        The JSON data with placeholders replaced.
-    """
-
+def create_prompt_from_yaml(file_name: str, placeholders: dict) -> list[BaseMessage]:
     data = read_yaml(find_resources_path() / 'prompts' / (file_name + '.yaml'))
-    logger.debug(data)
-    if "user" in data:
-        try:
-            data["user"] = data["user"].format(**placeholders)
-        except KeyError as e:
-            logger.error(f"Missing placeholder: {e}")
-            return {}
 
-    return data
+    if "system" not in data or "user" not in data:
+        raise ValueError("Prompt YAML must contain both 'system' and 'user' keys.")
+
+    prompt_template = ChatPromptTemplate.from_messages([
+        SystemMessagePromptTemplate.from_template(data["system"]),
+        HumanMessagePromptTemplate.from_template(data["user"])
+    ])
+
+    return prompt_template.format_messages(**placeholders)
 
 def map_prompt_to_payload_messages(prompt: dict) -> list:
     """

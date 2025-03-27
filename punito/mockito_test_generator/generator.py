@@ -3,8 +3,10 @@ import json
 from loguru import logger
 from ..utils import find_project_root, write_to_file, extract_class_name, get_package_version, create_prompt_from_yaml, \
     read_file, save_json_to_txt
-from ..llm_client.streaming_client import stream_chat_completion
+from ..chat_model import create_llama_model_from_config, LlamaChatModel
+from dynaconf import Dynaconf
 from pathlib import Path
+from langchain_core.messages import get_buffer_string
 
 def get_common_path(class_name: str, exe_fn_name: str, date_time: str):
     return (find_project_root() / 'generated_tests' / get_package_version()
@@ -22,14 +24,22 @@ def generate_plan_for_function(function_code: str, class_name: str, exe_fn_name:
         "source_code": function_code,
     }
 
-    prompt = create_prompt_from_yaml('planner_prompt', placeholders)
+    messages = create_prompt_from_yaml('planner_prompt', placeholders)
 
     target_path = common_path / tst_fn_name / f"plan_{tst_fn_name}.txt"
     prompt_path = common_path / tst_fn_name / "prompts" / f"planner_prompt_{tst_fn_name}.txt"
 
-    plan = stream_chat_completion(prompt)
+    llm = create_llama_model_from_config(True)
+
+    plan = ""
+    for chunk in llm.stream(messages):
+        token = chunk.content
+        print(token, end="", flush=True)
+        plan += token
+
     write_to_file(plan, target_path)
-    save_json_to_txt(json.dumps(prompt), prompt_path)
+
+    write_to_file(get_buffer_string(messages), prompt_path)
 
     return plan
 
@@ -78,10 +88,19 @@ def generate_tests_for_function(function_code: str, class_name: str, exe_fn_name
         "tests_plan": tests_plan
     }
 
-    prompt = create_prompt_from_yaml('tester_prompt', placeholders)
-    tests = stream_chat_completion(prompt)
+    messages = create_prompt_from_yaml('tester_prompt', placeholders)
+
+    llm = create_llama_model_from_config(True)
+
+    tests = ""
+    for chunk in llm.stream(messages):
+        token = chunk.content
+        print(token, end="", flush=True)
+        tests += token
+
     write_to_file(tests, target_path)
-    save_json_to_txt(json.dumps(prompt), prompt_path)
+
+    write_to_file(get_buffer_string(messages), prompt_path)
 
     return tests
 
@@ -100,11 +119,18 @@ def generate_review_for_function(function_code: str, class_name: str, exe_fn_nam
         "generated_test_code": test_code
     }
 
-    prompt = create_prompt_from_yaml('reviewer_prompt', placeholders)
+    messages = create_prompt_from_yaml('reviewer_prompt', placeholders)
 
-    review = stream_chat_completion(prompt)
+    llm = create_llama_model_from_config(True)
+
+    review = ""
+    for chunk in llm.stream(messages):
+        token = chunk.content
+        print(token, end="", flush=True)
+        review += token
+
     write_to_file(review, target_path)
-    save_json_to_txt(json.dumps(prompt), prompt_path)
+    write_to_file(get_buffer_string(messages), prompt_path)
 
     return review
 
@@ -123,11 +149,18 @@ def generate_refined_tests(function_code: str, class_name: str, exe_fn_name: str
         "review_report": review_report
     }
 
-    prompt = create_prompt_from_yaml('refiner_prompt', placeholders)
+    messages = create_prompt_from_yaml('refiner_prompt', placeholders)
 
-    refined_tests = stream_chat_completion(prompt)
+    llm = create_llama_model_from_config(True)
+
+    refined_tests = ""
+    for chunk in llm.stream(messages):
+        token = chunk.content
+        print(token, end="", flush=True)
+        refined_tests += token
+
     write_to_file(refined_tests, target_path)
-    save_json_to_txt(json.dumps(prompt), prompt_path)
+    write_to_file(get_buffer_string(messages), prompt_path)
 
     return refined_tests
 

@@ -31,7 +31,7 @@ system: |
   
           @Test
           public void shouldChangeMonthPeriodToCalendarYear()
-          {
+          {{
               // given
               BasicDataModelBean basicData = new BasicDataModelBean();
               basicData.setMonthPeriod(CALENDAR_YEAR);
@@ -46,7 +46,7 @@ system: |
               // then
               this.softly.assertThat(basicData.getTaxPeriodIsCalendarYear()).isTrue();
               this.softly.assertThat(basicData.getTaxPeriodYear()).isEqualTo(basicData.getYear());
-          }
+          }}
         ```
     - Avoid magic numbers or hardcoded values in assertions and inputs.
       Declare all such values as clearly named local variables at the beginning of each test method. 
@@ -62,7 +62,7 @@ system: |
       
       @Test
       public void shouldInitializePanel()
-      {
+      {{
          // given
          BasicDataModelBean basicData = setupModel();
          basicData.setCaseType(CaseTypeDt.TAX_DECLARATION_1103);

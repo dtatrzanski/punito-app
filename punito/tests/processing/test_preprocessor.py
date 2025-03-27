@@ -173,7 +173,8 @@ class TestGetFunctionWithIndividualDependencies(unittest.TestCase):
         """
         tree = parse_java_class(java_code)
         methods = get_all_methods(tree)
-        result = get_function_with_individual_dependencies(java_code, "target", methods)
+
+        result = get_function_with_individual_dependencies(java_code, "target", methods, set())
 
         # Direct dependencies from target(): "a" and "b"
         self.assertEqual(set(result.keys()), {"a", "b"})
