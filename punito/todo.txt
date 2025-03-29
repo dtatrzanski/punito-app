@@ -2,3 +2,7 @@
 - create agent which will go through all class and then send a configuration for further prompts: what examples to use or what prompts/steps
   in pipeline to call further.
 - Improve PanelControllerExampleMockitoTest.java
+- Improve planner - it should only write plans for tested function, not taking into consideration state changes in execution function
+  (test with exectuion  fn: initializePanle, tested fn: hide...)
+
+- REMOVE reviewer

@@ -14,6 +14,10 @@ system: |
   
   --- GUIDELINES ---
   - Cover all **branches** and **dependencies** of the Tested Function.
+  - Test method naming pattern: should<ExpectedBehavior>When<StateUnderTest>.
+    Examples:
+      - shouldSaveEntityWhenDataIsValid
+      - shouldNotSaveEntityWhenConstraintViolated
   - Include all RELEVANT **edge cases**.
   - Prefer full mocks or real objects; only suggest partial mocks (@Spy) when absolutely necessary (allowed for mapper classes).
   - Suggest verify(mock, times(n)).method(arguments) ONLY for external **and mocked** dependencies without accessible source code. 
@@ -30,72 +34,86 @@ system: |
     Add separate tests ONLY for distinct behaviors.
   - The goal is to achieve high coverage without creating redundant tests that exercise the same logical branches of the function. 
     Logical branches are distinct when "if conditions" trigger different outcomes such as state updates.
-    For Example, for code like this:
-    ```
-      public class UiController {{
-        TaxService taxService;
-  
-        public void handleTaxDeclaration(BasicDataModel model) {{
-            if (isCaseTypeSpecial(model)) {{
-                hideCommonElements(model);
-                taxService.notifyOffice(model.getCaseType())
-            }} else {{
-                hideCommonElements(model);
-                model.setShowCorrectionSection(false);
-                model.setShowImmediateDeclaration(false);
+    Examples:
+      Code:
+        ```
+          public class UiController {{
+            TaxService taxService;
+      
+            public void handleTaxDeclaration(BasicDataModel model) {{
+                if (isCaseTypeSpecial(model)) {{
+                    hideCommonElements(model);
+                    taxService.notifyOffice(model.getCaseType())
+                }} else {{
+                    hideCommonElements(model);
+                    model.setShowCorrectionSection(false);
+                    model.setShowImmediateDeclaration(false);
+                }}
+                initializeFooter(model);
             }}
-            initializeFooter(model);
-        }}
-
-        private boolean isCaseTypeSpecial(BasicDataModel model) {{
-            return model.getCaseType() == CaseType.SPECIAL;
-        }}
-
-        private void hideCommonElements(BasicDataModel model) {{
-            model.setShowYearInput(false);
-            model.setShowMonthPanel(false);
-        }}
-
-        private void initializeFooter(BasicDataModel model) {{
-            model.setFooterInitialized(true);
-        }}
-      }}
-    ```
-    Following tests should be planned:
-    ```
-      **shouldHideOnlyCommonElementsWhenCaseTypeIsSpecial**
-      - **Test Setup:**
-        - Create `BasicDataModel` instance.
-        - Set `caseType = CaseType.SPECIAL`.
-        - All visibility flags are initially `true`.
-      - **Mocks:**
-        - @Mock TaxService
-      - **Assertions:**
-        - `showYearInput = false`
-        - `showMonthPanel = false`
-        - `showCorrectionSection = true`
-        - `showImmediateDeclaration = true`
-        - `footerInitialized = true`
-      - **Verifications:**
-        - `Function notifyOffice from TaxService should be called once, with arguments: model.getCaseType()`
-
-      **shouldHideAllElementsWhenCaseTypeIsDefault**
-      - **Test Setup:**
-        - Create `BasicDataModel` instance.
-        - Set `caseType = CaseType.DEFAULT`.
-        - All visibility flags are initially `true`.
-      - **Mocks:**
-        - No mocks required. Method operates on direct state of `BasicDataModel`.    
-      - **Assertions:**
-        - `showYearInput = false`
-        - `showMonthPanel = false`
-        - `showCorrectionSection = false`
-        - `showImmediateDeclaration = false`
-        - `footerInitialized = true`
-      - **Verifications:**
-        - None
-    ```
+    
+            private boolean isCaseTypeSpecial(BasicDataModel model) {{
+                return model.getCaseType() == CaseType.SPECIAL;
+            }}
+    
+            private void hideCommonElements(BasicDataModel model) {{
+                model.setShowYearInput(false);
+                model.setShowMonthPanel(false);
+                hideAddress();
+            }}
+            
+            private void hideAddress() {{
+                model.setShowStreet(false);
+                model.setShowCity(false);
+            }}
   
+            private void initializeFooter(BasicDataModel model) {{
+                model.setFooterInitialized(true);
+            }}
+          }}
+        ```
+      Assumptions:
+        - execution function: "handleTaxDeclaration"
+        - tested function: "handleTaxDeclaration"
+      Expected plan:
+        ```
+          **shouldHideOnlyCommonElementsWhenCaseTypeIsSpecial**
+          - **Test Setup:**
+            - Create `BasicDataModel` instance.
+            - Set `caseType = CaseType.SPECIAL`.
+            - All visibility flags are initially `true`.
+          - **Mocks:**
+            - @Mock TaxService
+          - **Assertions:**
+            - `showYearInput = false`
+            - `showMonthPanel = false`
+            - `showStreet = false`
+            - `showCity = false`
+            - `showCorrectionSection = true`
+            - `showImmediateDeclaration = true`
+            - `footerInitialized = true`
+          - **Verifications:**
+            - `Function notifyOffice from TaxService should be called once, with arguments: model.getCaseType()`
+      
+          **shouldHideAllElementsWhenCaseTypeIsDefault**
+          - **Test Setup:**
+            - Create `BasicDataModel` instance.
+            - Set `caseType = CaseType.DEFAULT`.
+            - All visibility flags are initially `true`.
+          - **Mocks:**
+            - No mocks required. Method operates on direct state of `BasicDataModel`.    
+          - **Assertions:**
+            - `showYearInput = false`
+            - `showMonthPanel = false`
+            - `showStreet = false`
+            - `showCity = false`
+            - `showCorrectionSection = false`
+            - `showImmediateDeclaration = false`
+            - `footerInitialized = true`
+          - **Verifications:**
+            - None
+        ```
+
   --- STRUCTURE ---
   Use this template for every test:
   ```
@@ -115,6 +133,7 @@ user: |
   **Function Details:**
   - **Execution Function:** {execution_function_name}
   - **Tested Function:** {tested_function_name}
+  When planning consider ONLY logical branches and state changes in tested function and ignore side effects of execution function.
   
   **Code to Analyze:**
   ```

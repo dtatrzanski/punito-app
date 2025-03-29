@@ -95,6 +95,7 @@ class TestsGenerator:
         3. Generate review
         4. Generate refined tests
         """
+
         plan = self.generate_plan(function_code, exe_fn_name, tst_fn_name)
         initial_tests = self.generate_tests(function_code, exe_fn_name, tst_fn_name, plan, example_code)
         review = self.generate_review(function_code, exe_fn_name, tst_fn_name, initial_tests)
@@ -102,7 +103,7 @@ class TestsGenerator:
 
         return final_tests
 
-    def generate_tests_for_class(class_path: str, date_time: str) -> None:
+    def generate_tests_for_class(self, class_path: str, date_time: str) -> None:
         """
         Orchestrates the test generation process for a given Java class.
 
@@ -113,6 +114,7 @@ class TestsGenerator:
         date_time : str
             Timestamp string for organizing output.
         """
+
         path = Path(class_path)
         class_name = extract_class_name(path)
         logger.info(f"Generating tests for class: {class_name}")

@@ -28,7 +28,8 @@ system: |
       ALL assertions must use this.softly.assertThat(...).
     - Do NOT use @Before for test setup:
         - Define setup logic inside each test separately.
-    - Do not mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
+    - Do NOT mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
+    - Do NOT use private helper functions for data setup. Each test must define its own data setup explicitly.
       Example:
       ```
         @InjectMocks
@@ -81,7 +82,7 @@ system: |
     {test_example}
   ```
   Note: This was only an example of a test, which demonstrates project conventions.
-  Do not use constants or mocks defined there. Write your tests based only on class code provided below.
+  Do not use constants, mocks, model, or helpers defined there. Write your tests based only on class code provided below.
 
 user: |
   Generate a Java unit test class for the provided Java function and its dependencies, using the "Test Plan" below.
