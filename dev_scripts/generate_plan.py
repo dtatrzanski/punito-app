@@ -13,7 +13,7 @@ def main() -> None:
         r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
     )
     execution_function_name = "initializePanel"
-    tested_function_name = "initializePanel"
+    tested_function_name = "hideElementsfrom119to137"
     save_path = Path(__file__).parent / "debug" / "latest" / "generate_plan" / "tests_plan.txt"
 
     @generate_and_save(class_path, execution_function_name, tested_function_name, save_path)

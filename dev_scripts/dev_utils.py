@@ -51,7 +51,7 @@ def _get_function_code_and_save_debug(class_path: Path, exe_fn_name: str, tst_fn
     common_path = find_project_root() / 'dev_scripts' / "debug"
 
     chunked_code = get_chunked_code(read_file(class_path))
-    save_chunks(json.dumps(chunked_code), common_path / "latest" / "get_chunked_code" / "chunked_code.txt")
+    save_chunks(json.dumps(chunked_code), common_path / "latest" / "chunked_code" / "chunked_code.txt")
 
     function_code = chunked_code[exe_fn_name][tst_fn_name]
     write_to_file(function_code, common_path / "latest" / "chunk.txt")

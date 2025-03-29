@@ -1,9 +1,11 @@
 from datetime import datetime
 
+from punito import TestsGenerator
 from punito.tests_generator.generator_utils import get_test_example
-from punito.utils import read_file, extract_class_name, find_project_root
-from punito.processing import get_chunked_code
 from pathlib import Path
+
+from punito.utils import extract_class_name
+
 
 def main() -> None:
     """
@@ -17,10 +19,9 @@ def main() -> None:
         r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
     )
 
-    example_code = get_test_example("PanelControllerExampleMockitoTest.java")
+    generator = TestsGenerator(extract_class_name(class_path), datetime.now().isoformat().replace(":", "-") )
+    generator.generate_tests_for_class(class_path=class_path)
 
-    save_path = Path(__file__).parent / "debug" / "latest" / "generate_tests_for_class" / "class_tests.txt"
-    # TODO implement
 
 if __name__ == "__main__":
     main()

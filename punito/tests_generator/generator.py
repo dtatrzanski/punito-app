@@ -1,8 +1,8 @@
-import javalang
 from pathlib import Path
 from loguru import logger
 from langchain_core.messages import get_buffer_string
 
+from ..processing import get_chunked_code
 from ..utils import (
     find_project_root,
     write_to_file,
@@ -66,25 +66,7 @@ class TestsGenerator:
             "test_example": example_code,
             "tests_plan": tests_plan,
         }
-        return self._generate(exe_fn_name, tst_fn_name, 'tester_prompt', placeholders, f"initial_{tst_fn_name}.java")
-
-    def generate_review(self, function_code: str, exe_fn_name: str, tst_fn_name: str, test_code: str) -> str:
-        placeholders = {
-            "tested_function_name": exe_fn_name,
-            "execution_function_name": tst_fn_name,
-            "source_code": function_code,
-            "generated_test_code": test_code,
-        }
-        return self._generate(exe_fn_name, tst_fn_name, 'reviewer_prompt', placeholders, f"review_{tst_fn_name}.txt")
-
-    def generate_refined_tests(self, exe_fn_name: str, tst_fn_name: str, tests: str, review_report: str) -> str:
-        placeholders = {
-            "execution_function_name": exe_fn_name,
-            "tested_function_name": tst_fn_name,
-            "generated_test_code": tests,
-            "review_report": review_report,
-        }
-        return self._generate(exe_fn_name, tst_fn_name, 'refiner_prompt', placeholders, f"{tst_fn_name}.java")
+        return self._generate(exe_fn_name, tst_fn_name, 'tester_prompt', placeholders, f"{tst_fn_name}.java")
 
     def generate_tests_for_function(self, function_code: str, exe_fn_name: str, tst_fn_name: str,
                                     example_code: str = '') -> str:
@@ -97,32 +79,28 @@ class TestsGenerator:
         """
 
         plan = self.generate_plan(function_code, exe_fn_name, tst_fn_name)
-        initial_tests = self.generate_tests(function_code, exe_fn_name, tst_fn_name, plan, example_code)
-        review = self.generate_review(function_code, exe_fn_name, tst_fn_name, initial_tests)
-        final_tests = self.generate_refined_tests(exe_fn_name, tst_fn_name, initial_tests, review)
+        tests = self.generate_tests(function_code, exe_fn_name, tst_fn_name, plan, example_code)
 
-        return final_tests
+        return tests
 
-    def generate_tests_for_class(self, class_path: str, date_time: str) -> None:
+    def generate_tests_for_class(self, class_path: Path) -> None:
         """
         Orchestrates the test generation process for a given Java class.
 
         Parameters
         ----------
-        class_path : str
+        class_path : Path
             Path to the Java class file for which tests will be generated.
-        date_time : str
-            Timestamp string for organizing output.
         """
 
-        path = Path(class_path)
-        class_name = extract_class_name(path)
-        logger.info(f"Generating tests for class: {class_name}")
+        class_code = read_file(class_path)
+        logger.info(f"Generating tests for class: {extract_class_name(class_path)}")
 
-        class_code = read_file(path)
-        tree = javalang.parse.parse(class_code)
+        example_path = find_project_root() / "punito" / "resources" / "test_examples" / "PanelControllerExampleMockitoTest.java"
+        example_code = read_file(example_path)
 
-        # TODO: Implement orchestration logic for extracting public/private methods
-        # and calling generate_plan, generate_tests, etc., as needed.
+        chunked_code = get_chunked_code(class_code)
 
-
+        for public_function, dependencies in chunked_code.items():
+            for dep_name, dep_code in dependencies.items():
+                self.generate_tests_for_function(dep_code, public_function, dep_name, example_code)
