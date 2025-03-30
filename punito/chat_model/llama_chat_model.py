@@ -4,8 +4,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
 from langchain_core.callbacks import CallbackManagerForLLMRun
-from dynaconf import Dynaconf
-from punito.utils import find_project_root, get_default_settings
+from punito.utils import get_default_settings
 
 import httpx
 import json
