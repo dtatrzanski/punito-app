@@ -6,5 +6,8 @@
   (test with exectuion  fn: initializePanle, tested fn: hide...)
 - Remember to instruct in documentation in confluence for punito to go to windows registry editor -> HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
   and set LongPathsEnabled to 1
+- use request rather than streaming
+- refactor preprocessor
+- add tests
 
 - REMOVE reviewer
