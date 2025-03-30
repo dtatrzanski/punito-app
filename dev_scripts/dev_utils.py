@@ -154,7 +154,7 @@ def find_latest_generation(
     if not candidates:
         raise ValueError(
             f"No generation found for path: "
-            f"{execution_function_name}/{tested_function_name}/{file_name}.txt "
+            f"{execution_function_name}/{tested_function_name}/{file_name}. "
             f"Preceding pipeline step was not executed."
         )
 

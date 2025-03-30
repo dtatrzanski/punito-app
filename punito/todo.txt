@@ -4,5 +4,7 @@
 - Improve PanelControllerExampleMockitoTest.java
 - Improve planner - it should only write plans for tested function, not taking into consideration state changes in execution function
   (test with exectuion  fn: initializePanle, tested fn: hide...)
+- Remember to instruct in documentation in confluence for punito to go to windows registry editor -> HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
+  and set LongPathsEnabled to 1
 
 - REMOVE reviewer

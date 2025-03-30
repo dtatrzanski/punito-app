@@ -15,8 +15,8 @@ def main() -> None:
         r"\java\de\itzbund\moeve\enst\taxation\taxation\dlg\af200\controller"
         r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
     )
-    execution_function_name = "initializePanel"
-    tested_function_name = "initializePanel"
+    execution_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
+    tested_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
     save_path = Path(__file__).parent / "debug" / "latest" / "generate_tests" / "tests.txt"
     plan = find_latest_generation(extract_class_name(class_path), execution_function_name,
                                        tested_function_name, f"plan_{tested_function_name}.txt")

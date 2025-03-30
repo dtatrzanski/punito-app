@@ -12,8 +12,8 @@ def main() -> None:
         r"\java\de\itzbund\moeve\enst\taxation\taxation\dlg\af200\controller"
         r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
     )
-    execution_function_name = "initializePanel"
-    tested_function_name = "hideElementsfrom119to137"
+    execution_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
+    tested_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
     save_path = Path(__file__).parent / "debug" / "latest" / "generate_plan" / "tests_plan.txt"
 
     @generate_and_save(class_path, execution_function_name, tested_function_name, save_path)
