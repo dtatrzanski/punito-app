@@ -354,7 +354,6 @@ def filter_chunks(chunks: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]
     return filtered_chunks
 
 def get_chunked_code(class_code: str) -> Dict[str, Dict[str, str]]:
-    # TODO remove chunks for public functions which only calls other public functions and does not have any logic
     tree = parse_java_class(class_code)
     all_methods = get_all_methods(tree)
 

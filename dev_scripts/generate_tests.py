@@ -1,6 +1,6 @@
 from punito.utils import extract_class_name
 from punito.tests_generator.generator_utils import get_test_example
-from dev_utils import generate_and_save, find_latest_generation
+from dev_utils import generate_and_save, find_latest_generation_chunk
 from pathlib import Path
 
 
@@ -18,8 +18,8 @@ def main() -> None:
     execution_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
     tested_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
     save_path = Path(__file__).parent / "debug" / "latest" / "generate_tests" / "tests.txt"
-    plan = find_latest_generation(extract_class_name(class_path), execution_function_name,
-                                       tested_function_name, f"plan_{tested_function_name}.txt")
+    plan = find_latest_generation_chunk(extract_class_name(class_path), execution_function_name,
+                                        f"plan_{tested_function_name}.txt")
 
     @generate_and_save(class_path, execution_function_name, tested_function_name, save_path)
     def run_generation(generator, function_code):

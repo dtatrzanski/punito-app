@@ -6,12 +6,12 @@ from .runnables import PromptAndSaveRunnable
 
 from .generator_utils import get_test_example
 from ..chat_model import create_llama_model_from_config
-from ..processing import get_chunked_code
+from ..processing import get_chunked_code, collect_class_tests
 from ..utils import (
     find_project_root,
     extract_class_name,
     get_package_version,
-    read_file,
+    read_file, write_to_file,
 )
 from ..utils.common_utils import measure_time
 
@@ -20,14 +20,14 @@ class TestsGenerator:
     def __init__(self, class_name: str, date_time: str):
         self.class_name = class_name
         self.date_time = date_time
-        self.base_output_path = (
+        self.base_class_output_path = (
                 find_project_root()
                 / "generated_tests"
                 / get_package_version()
                 / date_time
                 / class_name
-                / "tests_per_public_function"
         )
+        self.base_fn_output_path = self.base_class_output_path / "tests_per_public_function"
         self.llm = create_llama_model_from_config(True)
 
         self.pipeline_steps = {
@@ -54,7 +54,7 @@ class TestsGenerator:
         )
 
     def _get_common_output_path(self, fn_name: str) -> Path:
-        return self.base_output_path / fn_name
+        return self.base_fn_output_path / fn_name
 
     def generate_plan(self, function_code: str, exe_fn_name: str, tst_fn_name: str) -> str:
         placeholders = {
@@ -63,7 +63,6 @@ class TestsGenerator:
             "source_code": function_code,
         }
 
-        logger.info(f"Planning tests for function: {tst_fn_name}, triggered by {exe_fn_name}")
         runnable = self._set_up_runnable_for_one_step_generation(self.pipeline_steps["plan"],
                                                                  self._get_common_output_path(exe_fn_name))
         return runnable.invoke(placeholders)["tests_plan"]
@@ -78,7 +77,6 @@ class TestsGenerator:
             "tests_plan": tests_plan,
         }
 
-        logger.info(f"Generating tests for function: {tst_fn_name}, triggered by {exe_fn_name}")
         runnable = self._set_up_runnable_for_one_step_generation(self.pipeline_steps["tests"],
                                                                  self._get_common_output_path(exe_fn_name))
         return runnable.invoke(placeholders)["initial_tests"]
@@ -105,20 +103,25 @@ class TestsGenerator:
 
         logger.info(f"Generating tests for class: {extract_class_name(class_path)}")
 
-        with ThreadPoolExecutor(max_workers=30) as executor:
-            futures = []
+        results = []
 
-            for public_fn, deps in chunked_code.items():
-                for dep_name, dep_code in deps.items():
-                    futures.append(
-                        executor.submit(
-                            self.generate_tests_for_function,
-                            dep_code, public_fn, dep_name, example_code
-                        )
-                    )
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            futures = [
+                executor.submit(
+                    self.generate_tests_for_function,
+                    dep_code, public_fn, dep_name, example_code
+                )
+                for public_fn, deps in chunked_code.items()
+                for dep_name, dep_code in deps.items()
+            ]
 
             for future in as_completed(futures):
                 try:
-                    future.result()
+                    result = future.result()
+                    results.append(result)
                 except Exception as e:
                     logger.error(f"Test generation failed: {e}")
+
+        test = collect_class_tests(results)
+
+        write_to_file(test, self.base_class_output_path / f"{self.class_name}MockitoTest" )

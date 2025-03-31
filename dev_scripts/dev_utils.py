@@ -1,5 +1,7 @@
 import json
 from pathlib import Path
+from typing import List
+
 from punito.utils import write_to_file
 from loguru import logger
 from punito.processing import get_chunked_code
@@ -21,12 +23,14 @@ def _format_value(value, indent: int = 0) -> str:
     elif isinstance(value, list):
         inner = "\n".join(f"{indentation}    - {_format_value(item, indent + 1)}" for item in value)
         return f"[\n{inner}\n{indentation}]"
-    elif isinstance(value, str) and ('\n' in value or value.strip().startswith(('import', 'public', '@', 'private', 'protected', 'class', 'def'))):
+    elif isinstance(value, str) and ('\n' in value or value.strip().startswith(
+            ('import', 'public', '@', 'private', 'protected', 'class', 'def'))):
         # Treat string as code
         code_lines = "\n".join(f"{indentation}    {line}" for line in value.strip().splitlines())
         return f"\n{indentation}'\n{code_lines}\n{indentation}'"
     else:
         return f"{value}"
+
 
 def save_chunks(chunks: str, file_path: Path):
     """
@@ -44,6 +48,7 @@ def save_chunks(chunks: str, file_path: Path):
     except IOError as e:
         logger.error(f"Error writing to file: {e}")
 
+
 def _get_function_code_and_save_debug(class_path: Path, exe_fn_name: str, tst_fn_name: str) -> str:
     """
     Extracts function code from a chunked code structure and saves debug files.
@@ -57,6 +62,7 @@ def _get_function_code_and_save_debug(class_path: Path, exe_fn_name: str, tst_fn
     write_to_file(function_code, common_path / "latest" / "chunk.txt")
 
     return function_code
+
 
 def generate_and_save(class_path: Path,
                       execution_function_name: str,
@@ -95,14 +101,20 @@ def generate_and_save(class_path: Path,
             result = generate_func(generator, function_code)
             write_to_file(result, save_path)
             return result
+
         return wrapper
+
     return decorator
 
-def find_latest_generation(
-    class_name: str,
-    execution_function_name: str,
-    tested_function_name: str,
-    file_name: str,
+
+def _get_generated_tests_path() -> Path:
+    return find_project_root() / 'generated_tests' / get_package_version()
+
+
+def find_latest_generation_chunk(
+        class_name: str,
+        execution_function_name: str,
+        file_name: str,
 ) -> str:
     """
     Find latest generated file.
@@ -113,8 +125,6 @@ def find_latest_generation(
         Name of the java class.
     execution_function_name : str
         Name of the execution function.
-    tested_function_name : str
-        Name of the tested function.
     file_name : str
         Name of the generated file (with extension).
 
@@ -131,8 +141,8 @@ def find_latest_generation(
         If no matching generated file is found.
     """
     candidates = []
-
-    base_dir = find_project_root() / 'generated_tests' / get_package_version()
+    base_dir = _get_generated_tests_path()
+    exe_fn_path = Path(class_name) / 'tests_per_public_function' / execution_function_name
 
     if not base_dir.exists():
         raise FileNotFoundError(
@@ -143,10 +153,7 @@ def find_latest_generation(
         if not child.is_dir():
             continue
 
-        test_dir = (
-            child / class_name / 'tests_per_public_function' /
-            execution_function_name / tested_function_name
-        )
+        test_dir = child / exe_fn_path
         matches = list(test_dir.glob(f'{file_name}'))
         if matches:
             candidates.append((child.name, matches[0]))
@@ -154,8 +161,25 @@ def find_latest_generation(
     if not candidates:
         raise ValueError(
             f"No generation found for path: "
-            f"{execution_function_name}/{tested_function_name}/{file_name}. "
+            f"{exe_fn_path}//{file_name}. "
             f"Preceding pipeline step was not executed."
         )
 
     return read_file(max(candidates, key=lambda x: x[0])[1])
+
+
+def get_latest_artifact_path() -> Path:
+    base_dir = _get_generated_tests_path()
+    artifacts = [d for d in base_dir.iterdir() if d.is_dir()]
+
+    return max(artifacts, key=lambda d: d.name)
+
+
+def collect_chunks(base_dir: Path) -> List[str]:
+    chunks = []
+    for child in base_dir.iterdir():
+        if child.is_dir():
+            for java_file in child.rglob("*.java"):
+                chunks.append(read_file(java_file))
+    logger.debug("chunks: " + str(len(chunks)))
+    return chunks

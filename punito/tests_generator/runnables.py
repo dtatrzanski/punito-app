@@ -60,7 +60,7 @@ class PromptAndSaveRunnable(Runnable):
 
         filename = self.filename_fn(params)
         output_path = self.output_dir / filename
-        prompt_path = self.output_dir / "prompts" / f"{self.prompt_name}_{filename}"
+        prompt_path = self.output_dir / "prompts" / f"{self.prompt_name}_{str(filename).replace('.java', '.txt')}"
 
         write_to_file(output, output_path)
         write_to_file(get_buffer_string(messages), prompt_path)

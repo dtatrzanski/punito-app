@@ -1,0 +1,22 @@
+from pathlib import Path
+
+from punito.processing import collect_class_tests
+from dev_utils import collect_chunks, get_latest_artifact_path
+from loguru import logger
+
+from punito.utils import write_to_file
+
+
+def main() -> None:
+    """
+    Script for testing plan generation for specific function.
+    """
+
+    artifact = get_latest_artifact_path()
+    chunks = collect_chunks(artifact)
+    final_test = collect_class_tests(chunks)
+
+    write_to_file(final_test, Path(__file__).parent / "debug" / "latest" / "collect_tests" / f"{(next(artifact.iterdir(), None)).name}MockitoTest.java")
+
+if __name__ == "__main__":
+    main()

@@ -42,7 +42,6 @@ class LlamaChatModel(BaseChatModel):
         }
 
         url = self.base_url + self.endpoint
-        logger.debug(f"Calling {url}")
 
         response = httpx.post(url, json=payload, timeout=self.timeout)
         response.raise_for_status()
@@ -68,7 +67,6 @@ class LlamaChatModel(BaseChatModel):
         }
 
         url = self.base_url + self.endpoint
-        logger.debug(f"Streaming from {url}")
 
         with httpx.stream("POST", url, json=payload, timeout=self.timeout) as response:
             for line in response.iter_lines():
