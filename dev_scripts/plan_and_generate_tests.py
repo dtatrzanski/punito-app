@@ -18,7 +18,7 @@ def main() -> None:
     execution_function_name = "onChangeOfTaxDeclarationImmediately"
     tested_function_name = "onChangeOfTaxDeclarationImmediately"
 
-    save_path = Path(__file__).parent / "debug" / "latest" / "generate_final_tests_for_function" / f"{tested_function_name}_final.java"
+    save_path = Path(__file__).parent / "debug" / "latest" / "generate_final_tests_for_function" / f"{tested_function_name}.java"
 
     @generate_and_save(class_path, execution_function_name, tested_function_name, save_path)
     def run_generation(generator, function_code):

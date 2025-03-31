@@ -53,7 +53,7 @@ class PromptAndSaveRunnable(Runnable):
         """
 
         messages = create_messages_from_yaml_template(self.prompt_name, params)
-        output = "".join(chunk.content for chunk in self.llm.stream(messages))
+        output = self.llm.invoke(messages, config=config).content
 
         filename = self.filename_fn(params)
         output_path = self.output_dir / filename

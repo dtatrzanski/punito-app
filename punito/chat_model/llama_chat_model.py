@@ -1,14 +1,12 @@
 from typing import Any, Dict, List, Optional, Iterator
-
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
 from langchain_core.callbacks import CallbackManagerForLLMRun
-from punito.utils import get_default_settings
-
-import httpx
-import json
+from langchain_core.runnables import RunnableConfig
+import httpx, json
 from loguru import logger
+from punito.utils import get_default_settings
 
 
 class LlamaChatModel(BaseChatModel):
@@ -18,7 +16,6 @@ class LlamaChatModel(BaseChatModel):
     base_url: str
     endpoint: str = "/completions"
     timeout: Optional[float] = None
-    streaming: bool = False
 
     @property
     def _llm_type(self) -> str:
@@ -75,7 +72,7 @@ class LlamaChatModel(BaseChatModel):
 
         with httpx.stream("POST", url, json=payload, timeout=self.timeout) as response:
             for line in response.iter_lines():
-                if not line:
+                if not line or line == "data: [DONE]":
                     continue
                 try:
                     data = json.loads(line.replace("data: ", ""))
@@ -87,15 +84,33 @@ class LlamaChatModel(BaseChatModel):
                         if run_manager:
                             run_manager.on_llm_new_token(content, chunk=chunk)
                         yield chunk
-                except Exception as e:
-                    logger.warning(f"Failed to parse stream chunk: {line}")
+                except json.JSONDecodeError as e:
+                    logger.warning(f"JSON decode error in stream chunk: {line}")
+                except (KeyError, TypeError) as e:
+                    logger.warning(f"Malformed stream chunk: {line} ({e.__class__.__name__})")
 
-def create_llama_model_from_config(streaming = False, timeout = None) -> LlamaChatModel:
+    def invoke(
+            self,
+            messages: List[BaseMessage],
+            config: Optional[RunnableConfig] = None,
+            **kwargs: Any,
+    ) -> BaseMessage:
+        return self._generate(messages, **kwargs).generations[0].message
+
+    def stream(
+        self,
+        messages: List[BaseMessage],
+        config: Optional[RunnableConfig] = None,
+        **kwargs: Any,
+    ) -> Iterator[BaseMessage]:
+        for chunk in self._stream(messages, **kwargs):
+            yield chunk.message
+
+def create_llama_model_from_config(streaming=False, timeout=None) -> LlamaChatModel:
     settings = get_default_settings()
     return LlamaChatModel(
         model_name=settings["MODEL"],
         base_url=settings["BASE_URL"],
         endpoint=settings["ENDPOINT"],
         timeout=timeout,
-        streaming=streaming,
     )
