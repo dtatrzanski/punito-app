@@ -1,9 +1,6 @@
 from datetime import datetime
-
 from punito import TestsGenerator
-from punito.tests_generator.generator_utils import get_test_example
 from pathlib import Path
-
 from punito.utils import extract_class_name
 
 

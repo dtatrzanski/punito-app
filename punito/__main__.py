@@ -1,7 +1,11 @@
 import argparse
+from pathlib import Path
+
 from loguru import logger
 from punito.tests_generator import TestsGenerator
 from datetime import datetime
+from punito.utils import extract_class_name
+
 
 def main() -> None:
     """
@@ -32,7 +36,8 @@ def main() -> None:
     class_path = parser.parse_args().class_path
     logger.info(f"Received arguments: class_path={class_path}")
 
-    TestsGenerator.generate_tests_for_class(class_path, datetime.now().isoformat().replace(":", "-"))
+    generator = TestsGenerator(extract_class_name(class_path), datetime.now().isoformat().replace(":", "-"))
+    generator.generate_tests_for_class(class_path=Path(class_path))
 
 if __name__ == "__main__":
     main()

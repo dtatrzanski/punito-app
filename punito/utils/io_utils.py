@@ -22,11 +22,12 @@ def read_file(path: Path) -> str:
     """
 
     try:
-        logger.info(f"Reading file: {path}")
+        logger.debug(f"Reading file: {path}")
         long_file_path: str = _format_long_path(path)
         with open(long_file_path, "r", encoding="utf-8") as f:
             return f.read()
     except Exception as e:
+        # TODO: cancel pipeline for chunk
         logger.error(f"Error reading file: {e}")
         return ""
 
