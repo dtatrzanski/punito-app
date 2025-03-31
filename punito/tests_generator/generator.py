@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from loguru import logger
 from .pipeline import TestsGenerationPipeline
@@ -101,6 +102,21 @@ class TestsGenerator:
         chunked_code = get_chunked_code(class_code)
 
         logger.info(f"Generating tests for class: {extract_class_name(class_path)}")
-        for public_fn, deps in chunked_code.items():
-            for dep_name, dep_code in deps.items():
-                self.generate_tests_for_function(dep_code, public_fn, dep_name, example_code)
+
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = []
+
+            for public_fn, deps in chunked_code.items():
+                for dep_name, dep_code in deps.items():
+                    futures.append(
+                        executor.submit(
+                            self.generate_tests_for_function,
+                            dep_code, public_fn, dep_name, example_code
+                        )
+                    )
+
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    logger.error(f"Test generation failed: {e}")
