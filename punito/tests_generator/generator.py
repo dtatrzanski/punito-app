@@ -61,6 +61,7 @@ class TestsGenerator:
             "source_code": function_code,
         }
 
+        logger.info(f"Planning tests for function: {tst_fn_name}, triggered by {exe_fn_name}")
         runnable = self._set_up_runnable_for_one_step_generation(self.pipeline_steps["plan"],
                                                                  self._get_common_output_path(exe_fn_name))
         return runnable.invoke(placeholders)["tests_plan"]
@@ -75,6 +76,7 @@ class TestsGenerator:
             "tests_plan": tests_plan,
         }
 
+        logger.info(f"Generating tests for function: {tst_fn_name}, triggered by {exe_fn_name}")
         runnable = self._set_up_runnable_for_one_step_generation(self.pipeline_steps["tests"],
                                                                  self._get_common_output_path(exe_fn_name))
         return runnable.invoke(placeholders)["initial_tests"]
@@ -87,6 +89,8 @@ class TestsGenerator:
             "source_code": function_code,
             "test_example": example_code,
         }
+
+        logger.info(f"Pipeline execution started | Test function: {tst_fn_name} | Execution function: {exe_fn_name}")
         output = self.pipeline.run(["plan", "tests"], placeholders, self._get_common_output_path(exe_fn_name))
 
         return output["initial_tests"]
