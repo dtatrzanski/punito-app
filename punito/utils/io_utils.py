@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from loguru import logger
 from pathlib import Path
 import yaml
@@ -31,14 +33,14 @@ def read_file(path: Path) -> str:
         logger.error(f"Error reading file: {e}")
         return ""
 
-
-def read_yaml(path: Path) -> dict:
+@lru_cache(maxsize=None)
+def read_yaml(path: str) -> dict:
     """
     Reads a YAML file from the given path and returns its content as a dictionary.
 
     Parameters
     ----------
-    path : Path
+    path : str
         Absolute path to the YAML file.
 
     Returns

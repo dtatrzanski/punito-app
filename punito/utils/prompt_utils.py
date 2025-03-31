@@ -25,7 +25,7 @@ def create_messages_from_yaml_template(file_name: str, placeholders: dict) -> li
         If 'system' or 'user' keys are missing in the YAML file.
     """
 
-    data = read_yaml(find_resources_path() / 'prompts' / (file_name + '.yaml'))
+    data = read_yaml(str(find_resources_path() / 'prompts' / (file_name + '.yaml')))
 
     if "system" not in data or "user" not in data:
         raise ValueError("Prompt YAML must contain both 'system' and 'user' keys.")

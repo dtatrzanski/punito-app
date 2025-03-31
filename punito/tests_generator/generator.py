@@ -13,6 +13,7 @@ from ..utils import (
     get_package_version,
     read_file,
 )
+from ..utils.common_utils import measure_time
 
 
 class TestsGenerator:
@@ -96,6 +97,7 @@ class TestsGenerator:
 
         return output["initial_tests"]
 
+    @measure_time
     def generate_tests_for_class(self, class_path: Path) -> None:
         class_code = read_file(class_path)
         example_code = get_test_example("PanelControllerExampleMockitoTest.java")
@@ -103,7 +105,7 @@ class TestsGenerator:
 
         logger.info(f"Generating tests for class: {extract_class_name(class_path)}")
 
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=30) as executor:
             futures = []
 
             for public_fn, deps in chunked_code.items():
