@@ -2,7 +2,9 @@ from pathlib import Path
 from typing import Any
 from langchain_core.messages import get_buffer_string
 from langchain_core.runnables import Runnable, RunnableConfig
+from loguru import logger
 
+from punito.tests_generator.generator_utils import create_log_for_runnable_invocation
 from punito.utils import create_messages_from_yaml_template, write_to_file
 
 
@@ -51,7 +53,8 @@ class PromptAndSaveRunnable(Runnable):
             Dictionary combining original `params` with an additional key (`output_key`)
             containing the generated output string, which can be used in next step in the pipeline.
         """
-
+        logger.info(create_log_for_runnable_invocation(self.prompt_name, params["tested_function_name"],
+                                                       params["execution_function_name"]))
         messages = create_messages_from_yaml_template(self.prompt_name, params)
         output = self.llm.invoke(messages, config=config).content
 

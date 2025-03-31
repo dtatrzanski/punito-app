@@ -47,11 +47,12 @@ def read_yaml(path: Path) -> dict:
         The parsed YAML content, or an empty dictionary in case of an error.
     """
     try:
-        logger.info(f"Reading YAML file: {path}")
+        logger.debug(f"Reading YAML file: {path}")
         with open(path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
     except (yaml.YAMLError, FileNotFoundError, IOError) as e:
         logger.error(f"Error reading YAML file: {e}")
+        # TODO: cancel whole generation
         return {}
 
 
@@ -77,6 +78,6 @@ def write_to_file(content: str, path: Path) -> None:
         long_file_path: str = _format_long_path(path)
         with open(long_file_path, "w", encoding="utf-8") as f:
             f.write(content)
-        logger.info(f"Content successfully written to {path}")
     except Exception as e:
         logger.error(f"Error writing file: {e}")
+        # TODO: cancel pipeline for chunk
