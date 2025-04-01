@@ -14,9 +14,11 @@ def main() -> None:
 
     artifact = get_latest_artifact_path()
     chunks = collect_chunks(artifact)
-    final_test = collect_class_tests(chunks)
+    test_class = f"{(next(artifact.iterdir(), None)).name}MockitoTest"
+    final_test = collect_class_tests(chunks, test_class)
 
-    write_to_file(final_test, Path(__file__).parent / "debug" / "latest" / "collect_tests" / f"{(next(artifact.iterdir(), None)).name}MockitoTest.java")
+    write_to_file(final_test, Path(__file__).parent / "debug" / "latest" / "collect_tests" / f"{test_class}.java")
+
 
 if __name__ == "__main__":
     main()
