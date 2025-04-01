@@ -1,6 +1,8 @@
 import re
 import javalang
-from typing import List
+import hashlib
+from collections import defaultdict
+from typing import List, Dict
 
 def collect_class_tests(chunks: List[str], class_name: str) -> str:
     imports_set = set()
@@ -14,6 +16,7 @@ def collect_class_tests(chunks: List[str], class_name: str) -> str:
     for i, chunk in enumerate(chunks):
         chunk = re.sub(r'^```java\n|```$', '', chunk.strip())
         lines = chunk.splitlines()
+        # TODO handle parsing error - prompt to fix compilation for chunk
         tree = javalang.parse.parse(chunk)
 
         # Collect imports
@@ -97,3 +100,134 @@ def collect_class_tests(chunks: List[str], class_name: str) -> str:
     )
 
     return merged_class
+
+def extract_method_name(test_code: str) -> str:
+    for line in test_code.splitlines():
+        line = line.strip()
+        if line.startswith("public void"):
+            return line.split()[2].split("(")[0]
+    return "<unknown>"
+
+def extract_test_blocks(java_code: str) -> List[str]:
+    tree = javalang.parse.parse(java_code)
+    test_methods = []
+    for _, node in tree:
+        # Include methods with @Test annotation or whose name starts with 'should'
+        if (isinstance(node, javalang.tree.MethodDeclaration) and
+            (node.annotations or node.name.startswith("should"))):
+            start_line = node.position.line - 1
+            all_lines = java_code.splitlines()[start_line:]
+            method_code, brace_count = [], 0
+            for line in all_lines:
+                method_code.append(line)
+                brace_count += line.count('{')
+                brace_count -= line.count('}')
+                if brace_count <= 0:
+                    break
+            test_methods.append("\n".join(method_code))
+    return test_methods
+
+def extract_given_then_blocks(test_code: str):
+    lines = test_code.splitlines()
+    given_lines, then_lines = [], []
+    current_section = None
+    for line in lines:
+        if '// given' in line:
+            current_section = 'given'
+            continue
+        elif '// then' in line:
+            current_section = 'then'
+            continue
+        elif '// when' in line:
+            current_section = None
+            continue
+
+        if current_section == 'given':
+            given_lines.append(line.strip())
+        elif current_section == 'then':
+            then_lines.append(line.strip())
+    return "\n".join(given_lines), "\n".join(then_lines)
+
+def normalize_statement(stmt: str) -> str:
+    """
+    Tokenizes using regex and keeps only tokens that are relevant for duplicate detection.
+    This includes allowed keywords, class names (starting with uppercase), number literals, and boolean literals.
+    """
+    # Capture words, numbers, or quoted strings.
+    tokens = re.findall(r'"[^"]*"|\b[A-Za-z_][A-Za-z0-9_]*\b|\d+(?:\.\d+)?', stmt)
+    normalized = []
+    allowed_tokens = {
+        "new", "=", ".", "this", "assertThat", "isTrue", "isFalse",
+        "isEqualTo", "isCloseTo", "within", "true", "false"
+    }
+    for tok in tokens:
+        if tok in allowed_tokens:
+            normalized.append(tok)
+        elif tok[0].isupper():  # likely a class or constant
+            normalized.append(tok)
+        elif tok.isnumeric() or tok.replace(".", "", 1).isnumeric():
+            normalized.append(tok)
+        elif tok.startswith('"') and tok.endswith('"'):
+            normalized.append(tok)
+        # Skip variable names and others.
+    return " ".join(normalized)
+
+def normalize_block(block: str) -> str:
+    # Normalize each line and sort to eliminate order issues.
+    return "\n".join(sorted(normalize_statement(line) for line in block.splitlines() if line.strip()))
+
+def hash_block(block: str) -> str:
+    return hashlib.md5(block.encode()).hexdigest()
+
+def find_duplicate_tests(test_class: str) -> List[Dict[str, List[str]]]:
+    test_methods = extract_test_blocks(test_class)
+    seen = {}
+    duplicates = defaultdict(list)
+    for test_code in test_methods:
+        given, then = extract_given_then_blocks(test_code)
+        given_norm = normalize_block(given)
+        then_norm = normalize_block(then)
+        key = (hash_block(given_norm), hash_block(then_norm))
+        method_name = extract_method_name(test_code)
+        if key in seen:
+            duplicates[seen[key]].append(method_name)
+        else:
+            seen[key] = method_name
+    return [{"test": test, "duplicates": dups} for test, dups in duplicates.items() if dups]
+
+
+def remove_duplicate_tests(tests_code: str) -> str:
+    duplicates = find_duplicate_tests(tests_code)
+    print(duplicates)
+    if not duplicates:
+        return tests_code
+
+    duplicate_method_names = {dup for group in duplicates for dup in group["duplicates"]}
+
+    tree = javalang.parse.parse(tests_code)
+    lines = tests_code.splitlines()
+    method_ranges = []
+
+    # Determine start and end lines of each method
+    for _, node in tree:
+        if isinstance(node, javalang.tree.MethodDeclaration):
+            method_name = node.name
+            if method_name in duplicate_method_names:
+                start_line = node.position.line - 1
+                # Extract method by counting braces
+                method_code, brace_count = [], 0
+                for idx in range(start_line, len(lines)):
+                    method_code.append(lines[idx])
+                    brace_count += lines[idx].count('{')
+                    brace_count -= lines[idx].count('}')
+                    if brace_count <= 0:
+                        end_line = idx
+                        method_ranges.append((start_line, end_line))
+                        break
+
+    # Remove duplicates in reverse order (to preserve indices)
+    for start, end in sorted(method_ranges, reverse=True):
+        del lines[start:end + 1]
+
+    return "\n".join(lines)
+

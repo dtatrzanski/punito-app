@@ -181,5 +181,5 @@ def collect_chunks(base_dir: Path) -> List[str]:
         if child.is_dir():
             for java_file in child.rglob("*.java"):
                 chunks.append(read_file(java_file))
-    logger.debug("chunks: " + str(len(chunks)))
+
     return chunks

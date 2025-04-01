@@ -9,5 +9,6 @@
 - use request rather than streaming
 - refactor preprocessor
 - add tests
+- instead of one big example for test give smaller precise ones for certain things
 
 - REMOVE reviewer

@@ -29,7 +29,9 @@ system: |
     - Do NOT use @Before for test setup:
         - Define setup logic inside each test separately.
     - Do NOT mock the model; instead, initialize it explicitly inside each test and inject it using injectModel() from AbstractMockitoTest.
+    - injectModel() has to be called in every test inside "given" section
     - Do NOT use private helper functions for data setup. Each test must define its own data setup explicitly.
+    - Make sure code will compile in java. Do not forget about semicolon at the end of each line.
       Example:
       ```
         @InjectMocks

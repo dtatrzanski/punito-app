@@ -7,6 +7,7 @@ from .runnables import PromptAndSaveRunnable
 from .generator_utils import get_test_example
 from ..chat_model import create_llama_model_from_config
 from ..processing import get_chunked_code, collect_class_tests
+from ..processing.postprocessor import remove_duplicate_tests
 from ..utils import (
     find_project_root,
     extract_class_name,
@@ -122,6 +123,8 @@ class TestsGenerator:
                 except Exception as e:
                     logger.error(f"Test generation failed: {e}")
 
-        test = collect_class_tests(results)
+        test = collect_class_tests(results, extract_class_name(class_path))
 
-        write_to_file(test, self.base_class_output_path / f"{self.class_name}MockitoTest" )
+        final_test = remove_duplicate_tests(test)
+
+        write_to_file(final_test, self.base_class_output_path / f"{self.class_name}MockitoTest" )
