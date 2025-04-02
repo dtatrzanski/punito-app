@@ -9,11 +9,10 @@ def main() -> None:
     Script for testing test generation for a specific class.
     It executes the full test generation pipeline for each chunk of code.
     """
-
     class_path = Path(
-        r"C:\moeve_IDE\moeve-ide\workspaces\main\moeve-vvst\moeve-enst-dlg\src\main"
-        r"\java\de\itzbund\moeve\enst\taxation\taxation\dlg\af200\controller"
-        r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
+        r"C:\moeve_IDE\moeve-ide\workspaces\main\moeve-vvst\moeve-vvst-dlg\src"
+        r"\main\java\de\itzbund\moeve\vvst\permission"
+        r"\application\dlg\controller\OtherAdmissionsPanelControllerBean.java"
     )
 
     generator = TestsGenerator(extract_class_name(class_path), datetime.now().isoformat().replace(":", "-") )
