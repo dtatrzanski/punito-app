@@ -3,6 +3,7 @@ import javalang
 import hashlib
 from collections import defaultdict
 from typing import List, Dict
+from loguru import logger
 
 def collect_class_tests(chunks: List[str], class_name: str) -> str:
     imports_set = set()
@@ -89,10 +90,12 @@ def collect_class_tests(chunks: List[str], class_name: str) -> str:
     util_methods_section = '\n\n'.join(util_methods)
     extends_clause = f" extends {class_extends}" if class_extends else ""
 
+    logger.warning(class_name)
+
     merged_class = (
         f"{imports_section}\n\n"
         f"{class_annotations_section}\n"
-        f"public class {class_name}{extends_clause} {{\n\n"
+        f"public class {class_name}MockitoTest{extends_clause} {{\n\n"
         f"{mock_fields_section}\n\n"
         f"{test_methods_section}\n\n"
         f"{util_methods_section}\n"

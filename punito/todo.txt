@@ -10,5 +10,9 @@
 - refactor preprocessor
 - add tests
 - instead of one big example for test give smaller precise ones for certain things
+- make sure static imports are static
 
 - REMOVE reviewer
+- Fix generation issues:
+ - wrong set state on model, wrong types
+ - wrong model injected.
