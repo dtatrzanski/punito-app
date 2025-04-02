@@ -32,6 +32,8 @@ system: |
     - injectModel() has to be called in every test inside "given" section
     - Do NOT use private helper functions for data setup. Each test must define its own data setup explicitly.
     - Make sure code will compile in java. Do not forget about semicolon at the end of each line.
+    - If implementation for function was not provided, just skip the test for it. Do not write tests without assertions or with dummy ones.
+  
       Example:
       ```
         @InjectMocks

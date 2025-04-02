@@ -90,8 +90,6 @@ def collect_class_tests(chunks: List[str], class_name: str) -> str:
     util_methods_section = '\n\n'.join(util_methods)
     extends_clause = f" extends {class_extends}" if class_extends else ""
 
-    logger.warning(class_name)
-
     merged_class = (
         f"{imports_section}\n\n"
         f"{class_annotations_section}\n"
@@ -201,7 +199,6 @@ def find_duplicate_tests(test_class: str) -> List[Dict[str, List[str]]]:
 
 def remove_duplicate_tests(tests_code: str) -> str:
     duplicates = find_duplicate_tests(tests_code)
-    print(duplicates)
     if not duplicates:
         return tests_code
 
