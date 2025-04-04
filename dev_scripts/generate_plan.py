@@ -7,13 +7,9 @@ def main() -> None:
     Script for testing plan generation for specific function.
     """
 
-    class_path = Path(
-        r"C:\moeve_IDE\moeve-ide\workspaces\main\moeve-vvst\moeve-enst-dlg\src\main"
-        r"\java\de\itzbund\moeve\enst\taxation\taxation\dlg\af200\controller"
-        r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
-    )
-    execution_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
-    tested_function_name = "basicdataStateAidAStateAidSelfdeclarationWillBeSubmittOnChange"
+    class_path = Path(r"C:\moeve_IDE\moeve-ide\workspaces\master\moeve-vvst\moeve-enst-dlg\src\main\java\de\itzbund\moeve\enst\permission\application\dlg\af100\controller\OtherAdmissionsPanelControllerBean.java")
+    execution_function_name = "initializePanel"
+    tested_function_name = "initializePanel"
     save_path = Path(__file__).parent / "debug" / "latest" / "generate_plan" / "tests_plan.txt"
 
     @generate_and_save(class_path, execution_function_name, tested_function_name, save_path)

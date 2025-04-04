@@ -10,8 +10,6 @@ from punito.utils import get_default_settings
 
 
 class LlamaChatModel(BaseChatModel):
-    """LangChain wrapper for custom on-prem LLaMA model via HTTP API."""
-
     model_name: str
     base_url: str
     endpoint: str = "/completions"
@@ -93,6 +91,24 @@ class LlamaChatModel(BaseChatModel):
             config: Optional[RunnableConfig] = None,
             **kwargs: Any,
     ) -> BaseMessage:
+        """
+        Generate a response for the given input messages.
+
+        Parameters
+        ----------
+        messages : list of BaseMessage
+            The list of messages to use as context for generation.
+        config : Optional[RunnableConfig], optional
+            Configuration for the Runnable.
+        **kwargs : Any
+            Additional keyword arguments passed to the generation method.
+
+        Returns
+        -------
+        BaseMessage
+            The generated AI message.
+        """
+
         return self._generate(messages, **kwargs).generations[0].message
 
     def stream(
@@ -101,10 +117,42 @@ class LlamaChatModel(BaseChatModel):
         config: Optional[RunnableConfig] = None,
         **kwargs: Any,
     ) -> Iterator[BaseMessage]:
+        """
+        Stream the generated response for the given input messages.
+
+        Parameters
+        ----------
+        messages : list of BaseMessage
+            The list of messages to use as context for streaming generation.
+        config : Optional[RunnableConfig], optional
+            Configuration for the Runnable.
+        **kwargs : Any
+            Additional keyword arguments passed to the streaming method.
+
+        Yields
+        ------
+        BaseMessage
+            A stream of partial AI messages (tokens or message chunks).
+        """
+
         for chunk in self._stream(messages, **kwargs):
             yield chunk.message
 
-def create_llama_model_from_config(streaming=False, timeout=None) -> LlamaChatModel:
+def create_llama_model_from_config(timeout=None) -> LlamaChatModel:
+    """
+    Create an instance of LlamaChatModel using default configuration.
+
+    Parameters
+    ----------
+    timeout : float or None, optional
+        Request timeout in seconds.
+
+    Returns
+    -------
+    LlamaChatModel
+        An initialized LlamaChatModel instance.
+    """
+
     settings = get_default_settings()
     return LlamaChatModel(
         model_name=settings["MODEL"],

@@ -10,13 +10,8 @@ def main():
     """
     Script for chunking the code and saving the result in a readable format.
     """
-
-    class_path = Path(
-        r"C:\moeve_IDE\moeve-ide\workspaces\main\moeve-vvst\moeve-enst-dlg\src\main"
-        r"\java\de\itzbund\moeve\enst\taxation\taxation\dlg\af200\controller"
-        r"\Af200EnergyBasicdataGeneralPanelControllerBean.java"
-    )
-    class_code = read_file(class_path)
+    class_path = r"C:\moeve_IDE\moeve-ide\workspaces\master\moeve-vvst\moeve-enst-dlg\src\main\java\de\itzbund\moeve\enst\permission\application\dlg\af100\controller\OtherAdmissionsPanelControllerBean.java"
+    class_code = read_file(Path(class_path))
 
     chunked_code = get_chunked_code(class_code)
     save_chunks(json.dumps(chunked_code), Path(__file__).parent / "debug" / "latest" / "chunked_code" / "chunked_code.txt" )

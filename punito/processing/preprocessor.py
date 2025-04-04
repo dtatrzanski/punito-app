@@ -20,7 +20,6 @@ def parse_java_class(class_code: str) -> CompilationUnit:
     """
     return javalang.parse.parse(class_code)
 
-
 def get_class_definition(class_code: str) -> str:
     """
     Extracts the full class definition, including annotations, from the provided Java source code.
@@ -35,9 +34,36 @@ def get_class_definition(class_code: str) -> str:
     str
         The class definition block as a string. Includes annotations and extends/implements clauses.
     """
-    pattern = r"((?:@\w+\s*)*)\b(public\s+class\s+\w+\s*(?:extends\s+[^{]+)?(?:\s+implements\s+[^{]+)?)\s*\{"
-    match = re.search(pattern, class_code, re.MULTILINE)
-    return (match.group(1) + match.group(2) + " {").strip() if match else ""
+    # Regex pattern for annotations and class header up to the opening brace.
+    pattern_header = r"""
+        (?P<header>
+            (?:\s*@\w+(?:\([^)]*\))?\s*)*                   # Annotations (simple, non-nested parameters)
+            (?:public\s+|protected\s+|private\s+|abstract\s+|final\s+|static\s+)*  # Optional modifiers
+            class\s+\w+                                     # 'class' keyword and class name
+            (?:\s*<[^>]+>)?                                 # Optional generics
+            (?:\s+extends\s+[^{]+)?                         # Optional 'extends' clause
+            (?:\s+implements\s+[^{]+)?                      # Optional 'implements' clause
+            \s*                                            # Optional whitespace
+            \{                                             # Opening brace of the class body
+        )
+    """
+    pattern_header = r"""
+        (                             # Capture group for the class header
+            (?:\s*@\w+(?:\([^)]*\))?\s*)*               # Annotations (simple, non-nested)
+            (?:public\s+|protected\s+|private\s+|abstract\s+|final\s+|static\s+)*  # Optional modifiers
+            class\s+\w+                                 # 'class' keyword and class name
+            (?:\s*<[^>]+>)?                             # Optional generics
+            (?:\s+extends\s+[^{\n]+)?                    # Optional 'extends' clause
+            (?:\s+implements\s+[^{\n]+)?                 # Optional 'implements' clause
+            \s*                                        # Optional trailing whitespace
+        )
+        (?=\{)                                           # Lookahead for the opening brace
+    """
+    header_re = re.compile(pattern_header, re.VERBOSE | re.DOTALL)
+    match = header_re.search(class_code)
+    if match:
+        return match.group(1).strip()
+    return ""
 
 
 def get_class_fields(class_code: str) -> str:
