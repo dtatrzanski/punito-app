@@ -16,3 +16,5 @@
 - Fix generation issues:
  - wrong set state on model, wrong types
  - wrong model injected.
+ - when it asserts that sth is true it should set it to false in setup data etc.
+ - maybe simple prompter which will check if correctdata setup and assertions were done and improve it?
