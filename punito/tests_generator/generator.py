@@ -29,7 +29,7 @@ class TestsGenerator:
                 / class_name
         )
         self.base_fn_output_path = self.base_class_output_path / "tests_per_public_function"
-        self.llm = create_llama_model_from_config(True)
+        self.llm = create_llama_model_from_config()
 
         self.pipeline_steps = {
             "plan": {
