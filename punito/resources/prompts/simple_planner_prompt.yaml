@@ -1,0 +1,113 @@
+system: |
+  You are a senior Java developer with deep expertise in writing **unit tests using JUnit 4.1 and Mockito 3.9**.
+  You will generate a **comprehensive test plan** for the given Java class and method.
+  The test plan must ensure high test coverage but minimize redundant tests.
+
+user: |
+  Generate a **Test Plan** for unit testing the given Java function and all its dependencies.
+  Follow the guidelines and structure.
+  
+  --- GUIDELINES ---
+  - Test method naming pattern: should<ExpectedBehavior>When<StateUnderTest>.
+    Examples:
+      - shouldSaveEntityWhenDataIsValid
+      - shouldNotSaveEntityWhenConstraintViolated
+  - Do NOT plan tests for exceptions.
+  - Do NOT plan tests for null inputs, unless there is a logic in source code checking for nulls.
+  
+    Examples:
+      Code:
+        ```
+          public class UiController {{
+            TaxService taxService;
+      
+            public void handleTaxDeclaration(BasicDataModel model) {{
+                if (isCaseTypeSpecial(model)) {{
+                    hideCommonElements(model);
+                    taxService.notifyOffice(model.getCaseType())
+                }} else {{
+                    hideCommonElements(model);
+                    model.setShowCorrectionSection(false);
+                    model.setShowImmediateDeclaration(false);
+                }}
+                initializeFooter(model);
+            }}
+    
+            private boolean isCaseTypeSpecial(BasicDataModel model) {{
+                return model.getCaseType() == CaseType.SPECIAL;
+            }}
+    
+            private void hideCommonElements(BasicDataModel model) {{
+                model.setShowYearInput(false);
+                model.setShowMonthPanel(false);
+                hideAddress();
+            }}
+            
+            private void hideAddress() {{
+                model.setShowStreet(false);
+                model.setShowCity(false);
+            }}
+  
+            private void initializeFooter(BasicDataModel model) {{
+                model.setFooterInitialized(true);
+            }}
+          }}
+        ```
+      Expected plan:
+        ```
+          **shouldHideOnlyCommonElementsWhenCaseTypeIsSpecial**
+          - **Test Setup:**
+            - Create `BasicDataModel` instance.
+            - Set `caseType = CaseType.SPECIAL`.
+            - All visibility flags are initially `true`.
+          - **Mocks:**
+            - @Mock TaxService
+          - **Assertions:**
+            - `showYearInput = false`
+            - `showMonthPanel = false`
+            - `showStreet = false`
+            - `showCity = false`
+            - `showCorrectionSection = true`
+            - `showImmediateDeclaration = true`
+            - `footerInitialized = true`
+          - **Verifications:**
+            - `Function notifyOffice from TaxService should be called once, with arguments: model.getCaseType()`
+      
+          **shouldHideAllElementsWhenCaseTypeIsDefault**
+          - **Test Setup:**
+            - Create `BasicDataModel` instance.
+            - Set `caseType = CaseType.DEFAULT`.
+            - All visibility flags are initially `true`.
+          - **Mocks:**
+            - No mocks required. Method operates on direct state of `BasicDataModel`.    
+          - **Assertions:**
+            - `showYearInput = false`
+            - `showMonthPanel = false`
+            - `showStreet = false`
+            - `showCity = false`
+            - `showCorrectionSection = false`
+            - `showImmediateDeclaration = false`
+            - `footerInitialized = true`
+          - **Verifications:**
+            - None
+        ```
+
+  --- STRUCTURE ---
+  Use this template for every test:
+  ```
+    **should<ExpectedBehavior>When<StateUnderTest>**
+    - **Test Setup:**
+      - <What is initialized and with what values?>
+    - **Mocks:**
+      - <Dependencies, and how they are mocked/stubbed>
+    - **Assertions:**
+      - <State or output that must be verified>
+    - **Verifications:**
+  ```
+  
+  **Code to Analyze:**
+  ```
+    {source_code}
+  ```
+ 
+  Output only the plan without any additional information, notes or comments.

@@ -1,5 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import List
+
 from loguru import logger
 from .pipeline import TestsGenerationPipeline
 from .runnables import PromptAndSaveRunnable
@@ -57,14 +59,20 @@ class TestsGenerator:
     def _get_common_output_path(self, fn_name: str) -> Path:
         return self.base_fn_output_path / fn_name
 
-    def generate_plan(self, function_code: str, exe_fn_name: str, tst_fn_name: str) -> str:
+    def generate_plan(self, function_code: str, exe_fn_name: str, tst_fn_name: str, prompt="planner_prompt") -> str:
         placeholders = {
             "execution_function_name": exe_fn_name,
             "tested_function_name": tst_fn_name,
             "source_code": function_code,
         }
 
-        runnable = self._set_up_runnable_for_one_step_generation(self.pipeline_steps["plan"],
+        plan_step = {
+            "prompt": prompt,
+            "output_var": "tests_plan",
+            "target_filename": lambda input: f"plan_{input['tested_function_name']}.txt",
+        }
+
+        runnable = self._set_up_runnable_for_one_step_generation(plan_step,
                                                                  self._get_common_output_path(exe_fn_name))
         return runnable.invoke(placeholders)["tests_plan"]
 
@@ -82,8 +90,11 @@ class TestsGenerator:
                                                                  self._get_common_output_path(exe_fn_name))
         return runnable.invoke(placeholders)["initial_tests"]
 
-    def generate_tests_for_function(self, function_code: str, exe_fn_name: str, tst_fn_name: str,
-                                    example_code: str = '') -> str:
+    def generate_tests_for_chunk(self, function_code: str, exe_fn_name: str, tst_fn_name: str,
+                                 example_code: str = '', steps=None) -> str:
+        if steps is None:
+            steps = ["plan", "tests"]
+
         placeholders = {
             "execution_function_name": exe_fn_name,
             "tested_function_name": tst_fn_name,
@@ -92,7 +103,7 @@ class TestsGenerator:
         }
 
         logger.info(f"Pipeline execution started | Test function: {tst_fn_name} | Execution function: {exe_fn_name}")
-        output = self.pipeline.run(["plan", "tests"], placeholders, self._get_common_output_path(exe_fn_name))
+        output = self.pipeline.run(steps, placeholders, self._get_common_output_path(exe_fn_name))
 
         return output["initial_tests"]
 
@@ -109,7 +120,7 @@ class TestsGenerator:
         with ThreadPoolExecutor(max_workers=50) as executor:
             futures = [
                 executor.submit(
-                    self.generate_tests_for_function,
+                    self.generate_tests_for_chunk,
                     dep_code, public_fn, dep_name, example_code
                 )
                 for public_fn, deps in chunked_code.items()

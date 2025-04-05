@@ -5,7 +5,7 @@ from punito.tests_generator.generator_utils import get_test_example
 
 def main() -> None:
     """
-    Script for testing the full process of test generation for a specific function.
+    Script for testing the full process of test generation for a specific chunk.
     It executes all steps in the pipeline.
     """
 
@@ -22,7 +22,7 @@ def main() -> None:
 
     @generate_and_save(class_path, execution_function_name, tested_function_name, save_path)
     def run_generation(generator, function_code):
-        return generator.generate_tests_for_function(
+        return generator.generate_tests_for_chunk(
             function_code=function_code,
             exe_fn_name=execution_function_name,
             tst_fn_name=tested_function_name,

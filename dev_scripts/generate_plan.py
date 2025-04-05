@@ -18,6 +18,7 @@ def main() -> None:
             function_code=function_code,
             exe_fn_name=execution_function_name,
             tst_fn_name=tested_function_name,
+            prompt="simple_planner_prompt"
         )
 
     run_generation()
